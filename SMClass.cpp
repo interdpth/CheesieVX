@@ -114,7 +114,7 @@ u32 SMClass::ReadPointer(u32 offset) {
 
 }
 
-unsigned short snes2gba_tilemap(uint16_t tile) { return (tile + 0xC0) & 0x3FF | tile & 0xC000 >> 4 | (tile & 0x1C00 << 3) + 0x3000; }
+unsigned short snes2gba_tilemap(uint16_t tile) { return ((tile + 0xC0) & 0x3FF | tile & 0xC000 >> 4 | (((tile & 0x1C00) >> 10) + 3) * 0x1000) & 0xFFFF; }
 
 int SMClass::GrabTileset(int GraphicsSet) {
 	u32 TableOff = 0;
@@ -149,7 +149,7 @@ int SMClass::GrabTileset(int GraphicsSet) {
 
 
 	Pal.resize(buffer.size());
-	System.DecodeSNESPal(PalOff, &Pal[0], 7, 0, size, &buffer);
+	System.DecodeSNESPal(PalOff, &Pal[0], 8, 0, size, &buffer);
 
 
 	//EncodePal(gbapal, &Pal[0], 16, 16);
@@ -157,7 +157,7 @@ int SMClass::GrabTileset(int GraphicsSet) {
 	if (fp2)
 	{
 		fseek(fp2, 0x10 * 2, SEEK_SET);
-		fwrite(&buffer.front(), 1, 16*2*7, fp2);
+		fwrite(&buffer.front(), 1, 16*2*8, fp2);
 		fclose(fp2);
 	}
 
@@ -206,10 +206,10 @@ int SMClass::GrabTileset(int GraphicsSet) {
 		unsigned short pftt = TSA.nTSA[tsaCounter];
 		int flipX = pftt & 0x4000 ? 0x400 : 0;
 		int flipY = pftt & 0x8000 ? 0x800 : 0;
-		int pal = (((pftt / 0x1000)) * 0x1000 + 0x3000) & 0xF000;
+		int pal = (((pftt & 0x1C00) >> 8) * 0x1000); 
 		int tile = (pftt + 0xC0) & 0x3FF;
 
-
+//pal | flipX | flipY | tile;
 		gbaTroid.nTSA[0x140 + tsaCounter] = snes2gba_tilemap(pftt);
 	}
 
@@ -409,49 +409,6 @@ int SMClass::LoadHeader(u32 Address) {
 int SMClass::MageExport(int Area, int Room, bool IsMf)
 {
 
-	/*unsigned short* layer
-	byteStream.WriteASCII("MAGE " + "5.0" + " ROOM");
-	byteStream.Seek(16);
-	byteStream.Write8(Convert.ToByte(!Version.IsMF));
-	byteStream.Write8(this.AreaID);
-	byteStream.Write8(this.RoomID);
-	byteStream.Seek(100);
-	int[] array = this.backgrounds.Export(byteStream);
-	int position = byteStream.Position;
-	this.enemyLists[0].Export(byteStream);
-	int val = 0;
-	if (this.header.spriteset1event > 0)
-	{
-	val = byteStream.Position;
-	this.enemyLists[1].Export(byteStream);
-	}
-	int val2 = 0;
-	if (this.header.spriteset2event > 0)
-	{
-	val2 = byteStream.Position;
-	this.enemyLists[2].Export(byteStream);
-	}
-	int position2 = byteStream.Position;
-	this.doorList.Export(byteStream);
-	int position3 = byteStream.Position;
-	this.scrollList.Export(byteStream);
-	int srcOffset = stream.ReadPtr(Version.AreaHeaderOffset + this.AreaID * 4) + this.RoomID * 60;
-	byteStream.CopyFromArray(stream.Data, srcOffset, 32, 60);
-	byteStream.Seek(40);
-	for (int i = 0; i < 5; i++)
-	{
-	byteStream.Write32(array[i]);
-	}
-	byteStream.Seek(64);
-	byteStream.Write32(position);
-	byteStream.Seek(72);
-	byteStream.Write32(val);
-	byteStream.Seek(80);
-	byteStream.Write32(val2);
-	byteStream.Seek(92);
-	byteStream.Write32(position2);
-	byteStream.Write32(position3);
-	byteStream.Export(filename);*/
 	return 0;
 }
 int SMClass::DrawRoom(wxMemoryDC* dst, wxMemoryDC* src) {

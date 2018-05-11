@@ -28,10 +28,7 @@ void gameImages::MakeImage(GBAImage* theimage,vector<u16>* TileIDs,int x,int y,i
 	u16 curTile;
 	int nx=0,ny=0;
 	i=0;
-
-	//for( i= 0; i<TSA.size()/8;i++)
-	//{
-	//this is gonna be so fucking dumb
+	
 	int tst=0;
 	if(TileIDs==NULL){
 		for( i=tst; i<TSA.size()/8;i++)
