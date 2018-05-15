@@ -17,11 +17,13 @@ void MemFile::ZeroOut()
 void MemFile::IncreaseSize(int size)
 {
 	theFile.resize(theFile.size()+size);
+	size = theFile.size();
 }
 MemFile::MemFile(int size)
 {
 	IncreaseSize(size);
 	ZeroOut();
+	fileIndex = 0;
 }
 unsigned char* MemFile::GetFile()
 {
@@ -51,7 +53,7 @@ void MemFile::Save(char* file)
 {
 	FILE* FP = fopen(file, "w+b");
 	fseek(FP, 0, SEEK_SET);
-	fwrite(&theFile.front(), size, 1, FP);
+	::fwrite(&theFile.front(), theFile.size(), 1, FP);
 	fclose(FP);
 }
 unsigned char MemFile::fgetc()
@@ -72,13 +74,25 @@ void MemFile::seek(unsigned long offset)
 //	memcpy(dst, &theFile[fileIndex], readSize);
 //	fileIndex += readSize;
 //}
+void MemFile::fwrite(void* src, int count, int size, bool resize)
+{
+	int readSize = count*size;
 
+		if (GetIndex() + readSize > theFile.size())
+		{
+			IncreaseSize(GetIndex() + readSize- theFile.size() + 64);
+		}
+		
+
+	memcpy(&theFile[fileIndex], src, readSize);
+	fileIndex += readSize;
+}
 void MemFile::fwrite(void* src, int count, int size, FILE* fp)
 {
 	int readSize = count*size;
-	if (readSize + fileIndex > this->size)
+	if (GetIndex() + readSize > theFile.size())
 	{
-		readSize = this->size - readSize + fileIndex;
+		IncreaseSize(GetIndex() + readSize - theFile.size() + 64);
 	}
 	memcpy(&theFile[fileIndex],src,  readSize);
 	fileIndex += readSize;	
@@ -86,7 +100,12 @@ void MemFile::fwrite(void* src, int count, int size, FILE* fp)
 
 unsigned char MemFile::fputc(char val)
 {
+	if (fileIndex + 1 > theFile.size())
+	{
+		IncreaseSize(1);
+	}
 	theFile[fileIndex++] = val;
+	printf("Writing %x to %x", val, fileIndex);
 	return theFile[fileIndex - 1];
 }
 
@@ -101,7 +120,11 @@ void MemFile::fput32(unsigned short val, bool increase)
 		}
 	}
 
-	memcpy(&theFile[fileIndex++], &val, 4);
+	theFile[fileIndex] = (unsigned char)val;
+	theFile[fileIndex + 1] = (unsigned char)(val >> 8);
+	theFile[fileIndex + 2] = (unsigned char)(val >> 16);
+	theFile[fileIndex + 3] = (unsigned char)(val >> 24);
+	printf("Writing %x to %x", val, fileIndex);
 	fileIndex += 4;
 }
 
@@ -116,7 +139,11 @@ void MemFile::fput16(unsigned short val, bool increase)
 		}
 	}
 	
-	memcpy(&theFile[fileIndex++], &val, 2);
+	//memcpy(&theFile[fileIndex], &val, 2);
+
+	theFile[fileIndex] = (unsigned char)val;
+	theFile[fileIndex + 1] = (unsigned char)(val >> 8);
+	printf("Writing %x to %x", val, fileIndex);
 	fileIndex += 2;	
 }
 
@@ -131,6 +158,7 @@ unsigned char MemFile::fputc(char val, bool increase)
 		}
 	}
 	theFile[fileIndex++]=val;
+	printf("Writing %x to %x", val, fileIndex);
 	return theFile[fileIndex-1];
 }
 long MemFile::GetIndex()
@@ -154,7 +182,8 @@ void  MemFile::WriteStr(char* thisString, bool increase)
 			IncreaseSize(fileIndex + slen - theFile.size());
 		}
 	}
-	memcpy(&theFile.front() + fileIndex, thisString, slen);
+	memcpy(&theFile.front() + fileIndex, thisString, slen );
+	printf("Writing %s to %x", thisString, fileIndex);
 	fileIndex += slen;
 }
 MemFile::~MemFile()

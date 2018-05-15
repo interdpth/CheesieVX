@@ -201,7 +201,7 @@ int SMClass::GrabTileset(int GraphicsSet) {
 	tTSA gbaTroid;
 	gbaTroid.max = TSA.nTSA.size() / 8;
 	gbaTroid.nTSA.resize(TSA.nTSA.size());
-	for (int tsaCounter = 0; tsaCounter < TSA.nTSA.size() - 0x140; tsaCounter++)
+	for (int tsaCounter = 0; tsaCounter < TSA.nTSA.size(); tsaCounter++)
 	{
 		unsigned short pftt = TSA.nTSA[tsaCounter];
 		int flipX = pftt & 0x4000 ? 0x400 : 0;
@@ -210,7 +210,7 @@ int SMClass::GrabTileset(int GraphicsSet) {
 		int tile = (pftt + 0xC0) & 0x3FF;
 
 //pal | flipX | flipY | tile;
-		gbaTroid.nTSA[0x140 + tsaCounter] = snes2gba_tilemap(pftt);
+		gbaTroid.nTSA[tsaCounter] = snes2gba_tilemap(pftt);
 	}
 
 	fp = fopen("gbatroid", "w+b");
@@ -409,8 +409,114 @@ int SMClass::LoadHeader(u32 Address) {
 int SMClass::MageExport(int Area, int Room, bool IsMf)
 {
 
+	MemFile*thisFile = new MemFile(1000);
+	thisFile->WriteStr("MAGE 1.0 ROOM", true);
+	thisFile->seek(16);
+	thisFile->fputc((unsigned char)(IsMf), true);
+	thisFile->fputc((unsigned char)Area, true);
+	thisFile->fputc((unsigned char)Room, true);
+	thisFile->seek(100);
+	Backgrounds* theBgs = new Backgrounds(RoomHeader.Width * 16, RoomHeader.Height * 16);
+	int  Width = RoomHeader.Width * 16;
+	int Height = RoomHeader.Height * 16;
+	int ThisY = 0;
+	int ThisX = 0;
+	RECT srcRect = { 0,0,0,0 };
+	RECT dstRect = { 0,0,0,0 };;
+	u16* TileBuf2D = &Map[1];
+	//imgMap.Create(Width*16, Height*16);
+
+	//Image* pic=&imgMap;
+
+	//pic->SetPalette(&Pal[0]);
+	for (int thisY = 0; thisY < Height; thisY++) {
+
+		for (int thisX = 0; thisX < (Width); thisX++) {// from here if something is enabled then draw it 
+			unsigned short	hflip = 1;
+			unsigned short		vflip = 1;
+			unsigned short		curTile = TileBuf2D[thisX + (thisY * Width)];
+			unsigned short		TILE = (curTile & 0x3ff);
+			unsigned short		flip = (curTile & 0xC00) >> 8;
+			unsigned short clipdata = curTile & 0x1000 >> 0xC;
+			//theBgs->clip->blocks[thisX + (thisY * Width)] = clipdata;
+			theBgs->bg1->blocks[thisX + (thisY * Width)] = TILE ;
+			switch (flip) {
+
+				//case 0x4:
+
+				//	hflip = -1; dstRect.left = 15;
+				//	break;
+				//case 0x8:
+				//	vflip = -1; dstRect.top = 15;
+				//	break;
+				//case 0xC:
+				//	hflip = -1; dstRect.left = 15;
+				//	vflip = -1; dstRect.top = 15;
+				//	break;
+
+			}
+
+
+		}
+	}
+	thisFile->seek(100);
+	int bgPointers[5] = { 0 };
+	theBgs->Export(thisFile, bgPointers);
+
+
+
+	int position = thisFile->GetIndex();
+	//
+	thisFile->fputc(0xFF); thisFile->fputc(0xFF); thisFile->fputc(0xFF);
+	//this.enemyLists[0].Export(byteStream);
+	int val = 0;
+	/*if (this.header.spriteset1event > 0)
+	{
+	val = byteStream.Position;
+	this.enemyLists[1].Export(byteStream);
+	}*/
+	int val2 = 0;
+	/*if (this.header.spriteset2event > 0)
+	{
+	val2 = byteStream.Position;
+	this.enemyLists[2].Export(byteStream);
+	}*/
+	int position2 = thisFile->GetIndex();
+	thisFile->fputc(0x0);
+	/*this.doorList.Export(byteStream);*/
+
+	int position3 = thisFile->GetIndex();
+	thisFile->fputc(0x0);
+	//this.scrollList.Export(byteStream);
+	RHeader newHeader;
+	memset(&newHeader, 0, 0x3c);
+	newHeader.bTileset = 8;
+
+	newHeader.bBg0 = 0;
+	newHeader.bBg1 = 16;
+	newHeader.bBg2 = 0;
+	newHeader.lBg3 = 0;
+	thisFile->seek(32);
+	thisFile->fwrite(&newHeader, 1, sizeof(RHeader), true);
+	thisFile->seek(40);
+	for (int i = 0; i < 5; i++)
+	{
+		thisFile->fput32(bgPointers[i], true);
+	}
+	thisFile->seek(64);
+	thisFile->fput32(position, true);
+	thisFile->seek(72);
+	thisFile->fput32(val, true);
+	thisFile->seek(80);
+	thisFile->fput32(val2, true);
+	thisFile->seek(92);
+	thisFile->fput32(position2, true);
+	thisFile->fput32(position3, true);
+	thisFile->Save("test.mgr");
+
 	return 0;
 }
+
 int SMClass::DrawRoom(wxMemoryDC* dst, wxMemoryDC* src) {
 	int thisX = 0, thisY = 0, mX = 0, mY = 0;
 	u16 TILE = 0;

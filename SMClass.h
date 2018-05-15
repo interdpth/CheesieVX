@@ -2,6 +2,7 @@
 #include "RomClass.h"
 #include "Compresch/CompreschMain.h"
 #include "MemFile.h"
+#include "Backgrounds.h"
 using namespace std;
 #define LC_NOBANK  0x00
 #define LC_LOROM   0x01  //LoROM
@@ -55,7 +56,7 @@ struct tTSA {
 #define u8 unsigned char
 #define u16 unsigned short
 #define u32 unsigned long
-
+#include "GBA.h"
 class SMClass{
 public:
 	std::vector<u16> Map; 

@@ -2,6 +2,7 @@
 #include "Layer.h"
 #include <vector>
 #include "MemFile.h"
+#include "RomClass.h"
 using namespace std;
 class BG
 {

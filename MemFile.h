@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <iostream>
 #include <vector>
+#include <stdio.h>
 using namespace std;
 class MemFile
 {
@@ -9,6 +10,7 @@ public:
 
 	static MemFile* currentFile;
 	MemFile();
+	void fwrite(void* src, int count, int size, bool resize);
 	MemFile(FILE* fp);
 	MemFile(int size);
 	MemFile(char* file);

@@ -182,6 +182,154 @@ void* RomClass::DecodeSNESPal(long offset, COLOR* dstPal, int numPals, char palp
 
 	return 0;
 }
+long            RomClass::UncompRle(unsigned short BufferSizeSwitch, unsigned char * arg1, unsigned char * arg2, long* compsize)
+{
+
+	unsigned char             *src = (unsigned char *)arg1, *dst = (unsigned char *)arg2;
+
+	unsigned long             jj, ii, nn;
+	unsigned long             ctrl, type;
+
+	type = 0;
+	nn = 0x3000;
+
+	switch (BufferSizeSwitch)
+	{
+	case 0:
+		type = 0x0800;
+		break;
+	case 3:
+		type = 0x2000;
+		break;
+	default:
+		type = 0x1000;
+	}
+
+	nn = 0x2000;
+
+	// DMAFill(3, 0, arg2, nn, 16);
+
+	for (ii = 0; ii < 2; ii++)
+	{
+		dst = (unsigned char *)& arg2[ii];
+		if (*src++ == 1) // 8 control field
+
+		{
+			while (1)
+			{
+				ctrl = *src++;
+				if (ctrl == 0)
+					break;
+
+				else if (ctrl & 0x80)
+				{
+					nn = ctrl & 0x7F;
+					if (*src)
+						for (jj = 0; jj < nn; jj++)
+							dst[2 * jj] = *src;
+					src++;
+				}
+				else
+				{
+					nn = ctrl;
+					for (jj = 0; jj < nn; jj++)
+						dst[2 * jj] = src[jj];
+					src += nn;
+				}
+
+				dst += 2 * nn;
+			}
+		}
+		else // RLE16
+
+		{
+			while (1)
+			{
+				ctrl = src[0] << 8 | src[1];
+				src += 2;
+				if (ctrl == 0)
+					break;
+
+				if (ctrl & 0x8000)
+				{
+					nn = ctrl & 0x7FFF;
+					if (*src)
+						for (jj = 0; jj < nn; jj++)
+							dst[2 * jj] = *src;
+					src++;
+				}
+				else
+				{
+					nn = ctrl;
+					for (jj = 0; jj < nn; jj++)
+						dst[2 * jj] = src[jj];
+					src += nn;
+				}
+				dst += 2 * nn;
+			}
+		}
+	}
+	*compsize = src - arg1;
+	return type;
+}
+
+
+long           RomClass::compress(unsigned char cmp[], unsigned char uncmp[], unsigned long sze)
+{
+	// int sze = 3;
+
+	unsigned long             cmpptr = 0;
+	unsigned long             sizeptr = 0;
+	unsigned long             dataptr = 0;
+	unsigned long             rl = 0;
+
+	unsigned long             samebytecount = 0;
+
+	for (int j = 0; j < 2; j++)
+	{
+		cmp[cmpptr++] = 1;
+		while (sze > dataptr)
+		{
+			rl = 2;
+			while (uncmp[dataptr] == uncmp[dataptr + 2] && uncmp[dataptr + 2] == uncmp[dataptr + 4] && rl < 0x7F && sze > dataptr)
+			{
+
+				dataptr += 2;
+				rl++;
+			}
+
+			if (rl > 2)
+			{
+				// printf("run found s=%02X\n", rl);
+				cmp[cmpptr++] = (unsigned char)((rl | 0x80) & 0xFF);
+				cmp[cmpptr++] = uncmp[dataptr];
+				dataptr += 4;
+			}
+			sizeptr = cmpptr;
+			cmpptr++;
+
+			rl = 0;
+			while ((uncmp[dataptr] != uncmp[dataptr + 2] || uncmp[dataptr + 2] != uncmp[dataptr + 4]) && rl < 0x7F && sze > dataptr)
+			{
+
+				cmp[cmpptr++] = uncmp[dataptr];
+				dataptr += 2;
+				rl++;
+			}
+			// printf("norun found s=%02X\n", rl);
+			if (rl != 0)
+				cmp[sizeptr] = (unsigned char)rl;
+			else
+				cmpptr--;
+		}
+		cmp[cmpptr++] = 0;
+
+		dataptr = 1;
+	}
+
+	return cmpptr;
+
+}
 
 
 

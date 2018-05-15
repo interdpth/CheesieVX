@@ -13,6 +13,8 @@ public:
 	RomClass();
 	~RomClass();
 	int Loaded;
+	static long compress(unsigned char cmp[], unsigned char uncmp[], unsigned long sze);
+	static long UncompRle(unsigned short BufferSizeSwitch, unsigned char * arg1, unsigned char * arg2, long* compsize);
 //	u16             palGBA[512];
 	void DecodePal(short *palGBA, COLOR* palPC, int numpals, char palpos);
 	long FindFreeSpace(long bNo, unsigned char bConst);
