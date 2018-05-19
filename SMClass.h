@@ -3,6 +3,7 @@
 #include "Compresch/CompreschMain.h"
 #include "MemFile.h"
 #include "Backgrounds.h"
+#include <map>
 using namespace std;
 #define LC_NOBANK  0x00
 #define LC_LOROM   0x01  //LoROM
@@ -59,6 +60,7 @@ struct tTSA {
 #include "GBA.h"
 class SMClass{
 public:
+	int ExportTilemap();
 	std::vector<u16> Map; 
 	int GrabRoom();
 	//Vars
@@ -93,7 +95,9 @@ public:
 	tTSA TSA;
 	u32 Pnt2Off(u32 pointer);
 	int FindHeaders();
+	int ExportTileset();
 
+	int ExportTileTable();
 
 };
 

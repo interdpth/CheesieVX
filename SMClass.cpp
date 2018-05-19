@@ -1,6 +1,6 @@
 #include "SMClass.h"
 #include <wx/bitmap.h>
-
+map<int, int> newTileMapping;
 void          EncodePal(unsigned short *palGBA, COLOR *palPC, int numpals, char palpos)
 {
 
@@ -114,7 +114,28 @@ u32 SMClass::ReadPointer(u32 offset) {
 
 }
 
-unsigned short snes2gba_tilemap(uint16_t tile) { return ((tile + 0xC0) & 0x3FF | tile & 0xC000 >> 4 | (((tile & 0x1C00) >> 10) + 3) * 0x1000) & 0xFFFF; }
+
+//((tile& 0xC000)>>4 
+unsigned short snes2gba_tilemap(uint16_t tile) 
+{ 
+	unsigned short newtile = tile & 0x3FF;
+	//If there's too many tiles, blank it out. 
+	if (newtile + 0xC0 > 0x3FF)
+	{
+		newtile = 0x84;
+	}
+	else
+	{
+		//otherwise account for GBA tiles.
+		if (newTileMapping.count(newtile)>0)
+		{
+			newtile = newTileMapping[newtile];
+		}
+		newtile += 0xC0;
+	}
+	
+	return ((newtile) & 0x3FF |  (((tile & 0x1C00) >> 10) + 2) * 0x1000 + 0x1000) & 0xFFFF;
+}
 
 int SMClass::GrabTileset(int GraphicsSet) {
 	u32 TableOff = 0;
@@ -150,23 +171,17 @@ int SMClass::GrabTileset(int GraphicsSet) {
 
 	Pal.resize(buffer.size());
 	System.DecodeSNESPal(PalOff, &Pal[0], 8, 0, size, &buffer);
-
-
-	//EncodePal(gbapal, &Pal[0], 16, 16);
 	FILE* fp2 = fopen("tmppal", "wb");
 	if (fp2)
 	{
 		fseek(fp2, 0x10 * 2, SEEK_SET);
-		fwrite(&buffer.front(), 1, 16*2*8, fp2);
+		fwrite(&buffer.front(), 1, 16 * 2 * 8, fp2);
 		fclose(fp2);
 	}
+	
 
-	fp2 = fopen("tmpgfx", "wb");
-	if (fp2)
-	{
-		fwrite(&Tiles[0], 1, Tiles.size(), fp2);
-		fclose(fp2);
-	}
+	//EncodePal(gbapal, &Pal[0], 16, 16);
+
 
 	vector<u8> tsa1;
 	vector<u8> tsa2;
@@ -190,31 +205,6 @@ int SMClass::GrabTileset(int GraphicsSet) {
 	src = &tsa2[0];
 	dst = (unsigned char*)&TSA.nTSA[0];//0x800*2?
 	memcpy(&dst[0x800], src, tsa2.size());
-	FILE* fp;
-	fp = fopen("one", "w+b");
-	if (fp) fwrite(&tsa1[0], 1, tsa1.size(), fp); fclose(fp);
-	fp = fopen("two", "w+b");
-	if (fp) fwrite(&tsa2[0], 1, tsa2.size(), fp); fclose(fp);
-	fp = fopen("onetwo", "w+b");
-	if (fp) fwrite(&TSA.nTSA[0], 1, TSA.nTSA.size(), fp); fclose(fp);
-
-	tTSA gbaTroid;
-	gbaTroid.max = TSA.nTSA.size() / 8;
-	gbaTroid.nTSA.resize(TSA.nTSA.size());
-	for (int tsaCounter = 0; tsaCounter < TSA.nTSA.size(); tsaCounter++)
-	{
-		unsigned short pftt = TSA.nTSA[tsaCounter];
-		int flipX = pftt & 0x4000 ? 0x400 : 0;
-		int flipY = pftt & 0x8000 ? 0x800 : 0;
-		int pal = (((pftt & 0x1C00) >> 8) * 0x1000); 
-		int tile = (pftt + 0xC0) & 0x3FF;
-
-//pal | flipX | flipY | tile;
-		gbaTroid.nTSA[tsaCounter] = snes2gba_tilemap(pftt);
-	}
-
-	fp = fopen("gbatroid", "w+b");
-	if (fp) fwrite(&gbaTroid.nTSA[0], 1, gbaTroid.nTSA.size(), fp); fclose(fp);
 	
 	return 0;
 }
@@ -340,28 +330,11 @@ int SMClass::GrabRoom() {
 	Map.resize(size / 2);
 	memcpy(&Map[0], &buffer[0], size);
 
-	//MapTileData.Create(&System.Map,System.RoomHeader.Width,System.RoomHeader.Height);
+	
 	return 0;
 
 
 
-}
-int SMClass::BlitToBB() {
-	//bbMap.Create(imgMap.Width,imgMap.Height);
-	/*RECT dstRect, srcRect;
-	dstRect.left = 0;
-	dstRect.top = 0;
-	dstRect.right = imgMap.Width;
-	dstRect.bottom = imgMap.Height;
-	memcpy(&srcRect, &dstRect, sizeof(dstRect));
-
-	//SNES.Blit(bbMap.DC(),&dstRect,imgMap.DC(),&srcRect,mgfyMap);
-	//Don't forget to resize MapWindow To match contents?
-	GetWindowRect(hwndMap,&srcRect);//Just reuse rects!
-	srcRect.bottom = bbMap.GetHt();
-	srcRect.right = bbMap.GetWd();
-	//MoveWindow(hwndMap,srcRect.left, srcRect.top-40, (srcRect.right-16)*mgfyMap, srcRect.bottom*mgfyMap,1);
-	*/return 0;
 }
 
 int SMClass::FindHeaders() {/*
@@ -395,20 +368,125 @@ int SMClass::LoadHeader(u32 Address) {
 		fread(&RoomHeader.Unknown1, 1, sizeof(RoomHeader.Unknown1), fp);
 		fread(&RoomHeader.Unknown2, 1, sizeof(RoomHeader.Unknown1), fp);
 		fread(&RoomHeader.Unknown3, 1, sizeof(RoomHeader.Unknown2), fp);
-		//imgMap.Create(RoomHeader.Width*16*2, RoomHeader.Height*16*2);
-		//bbMap.Create(RoomHeader.Width*16*2, RoomHeader.Height*16*2);
-		//scrMapHMax=RoomHeader.Width*16;
-		//scrMapVMax=RoomHeader.Height*16;
-		//ChangeScrollbars(hwndMap, 1, 0, &scrMapHVal, scrMapHMax);
-		//ChangeScrollbars(hwndMap, 1, 0, &scrMapVVal, scrMapVMax);
+
 		fread(&RoomHeader.Pdoorout, 1, sizeof(RoomHeader.Pdoorout), fp);
 		fclose(fp);
 	}
 	return RoomHeader.Pdoorout;
 }
-int SMClass::MageExport(int Area, int Room, bool IsMf)
+
+
+bool CompareTiles(unsigned char* srcTile, unsigned char* chkTile)
+{
+	return memcmp(srcTile, chkTile, 32)==0;
+}
+
+bool TileExists(unsigned char* srcTile, vector<unsigned char*>*theTiles)
+{
+	for (int tileCount = 0; tileCount < theTiles->size(); tileCount++)
+	{
+		if (CompareTiles(srcTile, theTiles->at(tileCount)))
+		{
+			return true;
+		}
+	}
+
+	return false; 
+}
+int SMClass::ExportTileset()
+{
+	
+	vector<unsigned char*> rawTiles;
+	vector<unsigned char*> newTiles;
+
+	//Blank tile to use later
+	unsigned char* thisTile = new unsigned char[32];
+	memset(thisTile,0, 32);
+	rawTiles.push_back(thisTile);
+
+	for (int i = 0; i < Tiles.size()/32; i++)
+	{
+		unsigned char* thisTile = new unsigned char[32];
+		memcpy(thisTile, &Tiles[i * 32], 32);
+		rawTiles.push_back(thisTile);
+	}
+
+	for (int i = 0; i < rawTiles.size(); i++)
+	{
+		unsigned char thisTile[32] = { 0 };
+		memcpy(thisTile, rawTiles.at(i),32);
+		
+		if(!TileExists(thisTile, &newTiles))
+		{ 
+			unsigned char* newTile = new unsigned char[32];
+			memcpy(newTile, rawTiles.at(i), 32);
+			newTiles.push_back(newTile);
+			newTileMapping[i] = newTiles.size() - 1;
+		}
+	}
+
+	int oldTileCount = rawTiles.size();
+	int newTileCount = newTiles.size();;
+	int difference = oldTileCount - newTileCount;
+	
+	Tiles.clear();
+	for (int i = 0; i < newTiles.size(); i++)
+	{
+		for (int y = 0; y < 32; y++)
+		{
+	
+			Tiles.push_back(newTiles[i][y]);
+		}
+	}
+
+
+FILE*	fp2 = fopen("tmpgfx", "wb");
+	if (fp2)
+	{
+		fwrite(&Tiles[0], 1, Tiles.size(), fp2);
+		fclose(fp2);
+	}
+
+
+	for (int i = 0; i < rawTiles.size(); i++)
+	{
+		delete[] rawTiles[i];
+	}
+	for (int i = 0; i < newTiles.size(); i++)
+	{
+		delete[] newTiles[i];
+	}
+	return true;
+}
+
+int SMClass::ExportTileTable()
 {
 
+
+	tTSA gbaTroid;
+	gbaTroid.max = TSA.nTSA.size() / 8;
+	gbaTroid.nTSA.resize(TSA.nTSA.size());
+	for (int tsaCounter = 0xa0*4; tsaCounter < TSA.nTSA.size(); tsaCounter++)
+	{
+		unsigned short pftt = TSA.nTSA[tsaCounter];
+		int flipX = pftt & 0x4000 ? 0x400 : 0;
+		int flipY = pftt & 0x8000 ? 0x800 : 0;
+		int pal = (((pftt & 0x1C00) >> 8) * 0x1000);
+		int tile = (pftt + 0xC0) & 0x3FF;
+
+		//gbaTroid.nTSA[tsaCounter] = pal+ 0x4000 | tile;
+		gbaTroid.nTSA[tsaCounter] = snes2gba_tilemap(pftt);
+	}
+
+	FILE* fp = fopen("gbatroid.tiletable", "w+b");
+	if (fp) fwrite(&gbaTroid.nTSA[0], 1, gbaTroid.nTSA.size(), fp); fclose(fp);
+
+	return 0;
+}
+int SMClass::MageExport(int Area, int Room, bool IsMf)
+{
+	ExportTileset();
+	ExportTileTable();
 	MemFile*thisFile = new MemFile(1000);
 	thisFile->WriteStr("MAGE 1.0 ROOM", true);
 	thisFile->seek(16);
@@ -517,6 +595,8 @@ int SMClass::MageExport(int Area, int Room, bool IsMf)
 	return 0;
 }
 
+
+
 int SMClass::DrawRoom(wxMemoryDC* dst, wxMemoryDC* src) {
 	int thisX = 0, thisY = 0, mX = 0, mY = 0;
 	u16 TILE = 0;
@@ -552,7 +632,7 @@ int SMClass::DrawRoom(wxMemoryDC* dst, wxMemoryDC* src) {
 			dstRect.top = 0;
 			dstRect.right = 0;
 			dstRect.bottom = 0;
-			switch (flip) {
+			/*switch (flip) {
 
 			case 0x4:
 
@@ -566,7 +646,7 @@ int SMClass::DrawRoom(wxMemoryDC* dst, wxMemoryDC* src) {
 				vflip = -1; dstRect.top = 15;
 				break;
 
-			}
+			}*/
 
 			//Upon reviewing this code I am only halfway sure of how it works. XD
 			dstRect.left += thisX * 16;
