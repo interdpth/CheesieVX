@@ -1,6 +1,6 @@
 #include "SMClass.h"
 #include <wx/bitmap.h>
-map<int, int> newTileMapping;
+
 void          EncodePal(unsigned short *palGBA, COLOR *palPC, int numpals, char palpos)
 {
 
@@ -71,7 +71,7 @@ u32 SMClass::Pnt2Off(unsigned long pointer) {
 }
 SMClass::SMClass(char* FilePath)
 {
-
+	Logger::log = new Logger("DebugFile.txt");
 	strcpy(System.RomFilePath, FilePath);
 	System.ROM = fopen(FilePath, "r+b");
 
@@ -115,28 +115,6 @@ u32 SMClass::ReadPointer(u32 offset) {
 }
 
 
-//((tile& 0xC000)>>4 
-unsigned short snes2gba_tilemap(uint16_t tile) 
-{ 
-	unsigned short newtile = tile & 0x3FF;
-	//If there's too many tiles, blank it out. 
-	if (newtile + 0xC0 > 0x3FF)
-	{
-		newtile = 0x84;
-	}
-	else
-	{
-		//otherwise account for GBA tiles.
-		if (newTileMapping.count(newtile)>0)
-		{
-			newtile = newTileMapping[newtile];
-		}
-		newtile += 0xC0;
-	}
-	
-	return ((newtile) & 0x3FF |  (((tile & 0x1C00) >> 10) + 2) * 0x1000 + 0x1000) & 0xFFFF;
-}
-
 int SMClass::GrabTileset(int GraphicsSet) {
 	u32 TableOff = 0;
 	u32 PalOff = 0;
@@ -178,7 +156,7 @@ int SMClass::GrabTileset(int GraphicsSet) {
 		fwrite(&buffer.front(), 1, 16 * 2 * 8, fp2);
 		fclose(fp2);
 	}
-	
+
 
 	//EncodePal(gbapal, &Pal[0], 16, 16);
 
@@ -205,7 +183,7 @@ int SMClass::GrabTileset(int GraphicsSet) {
 	src = &tsa2[0];
 	dst = (unsigned char*)&TSA.nTSA[0];//0x800*2?
 	memcpy(&dst[0x800], src, tsa2.size());
-	
+
 	return 0;
 }
 int SMClass::SNES2GBA(u8* pnt) {
@@ -330,7 +308,7 @@ int SMClass::GrabRoom() {
 	Map.resize(size / 2);
 	memcpy(&Map[0], &buffer[0], size);
 
-	
+
 	return 0;
 
 
@@ -373,226 +351,6 @@ int SMClass::LoadHeader(u32 Address) {
 		fclose(fp);
 	}
 	return RoomHeader.Pdoorout;
-}
-
-
-bool CompareTiles(unsigned char* srcTile, unsigned char* chkTile)
-{
-	return memcmp(srcTile, chkTile, 32)==0;
-}
-
-bool TileExists(unsigned char* srcTile, vector<unsigned char*>*theTiles)
-{
-	for (int tileCount = 0; tileCount < theTiles->size(); tileCount++)
-	{
-		if (CompareTiles(srcTile, theTiles->at(tileCount)))
-		{
-			return true;
-		}
-	}
-
-	return false; 
-}
-int SMClass::ExportTileset()
-{
-	
-	vector<unsigned char*> rawTiles;
-	vector<unsigned char*> newTiles;
-
-	//Blank tile to use later
-	unsigned char* thisTile = new unsigned char[32];
-	memset(thisTile,0, 32);
-	rawTiles.push_back(thisTile);
-
-	for (int i = 0; i < Tiles.size()/32; i++)
-	{
-		unsigned char* thisTile = new unsigned char[32];
-		memcpy(thisTile, &Tiles[i * 32], 32);
-		rawTiles.push_back(thisTile);
-	}
-
-	for (int i = 0; i < rawTiles.size(); i++)
-	{
-		unsigned char thisTile[32] = { 0 };
-		memcpy(thisTile, rawTiles.at(i),32);
-		
-		if(!TileExists(thisTile, &newTiles))
-		{ 
-			unsigned char* newTile = new unsigned char[32];
-			memcpy(newTile, rawTiles.at(i), 32);
-			newTiles.push_back(newTile);
-			newTileMapping[i] = newTiles.size() - 1;
-		}
-	}
-
-	int oldTileCount = rawTiles.size();
-	int newTileCount = newTiles.size();;
-	int difference = oldTileCount - newTileCount;
-	
-	Tiles.clear();
-	for (int i = 0; i < newTiles.size(); i++)
-	{
-		for (int y = 0; y < 32; y++)
-		{
-	
-			Tiles.push_back(newTiles[i][y]);
-		}
-	}
-
-
-FILE*	fp2 = fopen("tmpgfx", "wb");
-	if (fp2)
-	{
-		fwrite(&Tiles[0], 1, Tiles.size(), fp2);
-		fclose(fp2);
-	}
-
-
-	for (int i = 0; i < rawTiles.size(); i++)
-	{
-		delete[] rawTiles[i];
-	}
-	for (int i = 0; i < newTiles.size(); i++)
-	{
-		delete[] newTiles[i];
-	}
-	return true;
-}
-
-int SMClass::ExportTileTable()
-{
-
-
-	tTSA gbaTroid;
-	gbaTroid.max = TSA.nTSA.size() / 8;
-	gbaTroid.nTSA.resize(TSA.nTSA.size());
-	for (int tsaCounter = 0xa0*4; tsaCounter < TSA.nTSA.size(); tsaCounter++)
-	{
-		unsigned short pftt = TSA.nTSA[tsaCounter];
-		int flipX = pftt & 0x4000 ? 0x400 : 0;
-		int flipY = pftt & 0x8000 ? 0x800 : 0;
-		int pal = (((pftt & 0x1C00) >> 8) * 0x1000);
-		int tile = (pftt + 0xC0) & 0x3FF;
-
-		//gbaTroid.nTSA[tsaCounter] = pal+ 0x4000 | tile;
-		gbaTroid.nTSA[tsaCounter] = snes2gba_tilemap(pftt);
-	}
-
-	FILE* fp = fopen("gbatroid.tiletable", "w+b");
-	if (fp) fwrite(&gbaTroid.nTSA[0], 1, gbaTroid.nTSA.size(), fp); fclose(fp);
-
-	return 0;
-}
-int SMClass::MageExport(int Area, int Room, bool IsMf)
-{
-	ExportTileset();
-	ExportTileTable();
-	MemFile*thisFile = new MemFile(1000);
-	thisFile->WriteStr("MAGE 1.0 ROOM", true);
-	thisFile->seek(16);
-	thisFile->fputc((unsigned char)(IsMf), true);
-	thisFile->fputc((unsigned char)Area, true);
-	thisFile->fputc((unsigned char)Room, true);
-	thisFile->seek(100);
-	Backgrounds* theBgs = new Backgrounds(RoomHeader.Width * 16, RoomHeader.Height * 16);
-	int  Width = RoomHeader.Width * 16;
-	int Height = RoomHeader.Height * 16;
-	int ThisY = 0;
-	int ThisX = 0;
-	RECT srcRect = { 0,0,0,0 };
-	RECT dstRect = { 0,0,0,0 };;
-	u16* TileBuf2D = &Map[1];
-	//imgMap.Create(Width*16, Height*16);
-
-	//Image* pic=&imgMap;
-
-	//pic->SetPalette(&Pal[0]);
-	for (int thisY = 0; thisY < Height; thisY++) {
-
-		for (int thisX = 0; thisX < (Width); thisX++) {// from here if something is enabled then draw it 
-			unsigned short	hflip = 1;
-			unsigned short		vflip = 1;
-			unsigned short		curTile = TileBuf2D[thisX + (thisY * Width)];
-			unsigned short		TILE = (curTile & 0x3ff);
-			unsigned short		flip = (curTile & 0xC00) >> 8;
-			unsigned short clipdata = curTile & 0x1000 >> 0xC;
-			//theBgs->clip->blocks[thisX + (thisY * Width)] = clipdata;
-			theBgs->bg1->blocks[thisX + (thisY * Width)] = TILE ;
-			switch (flip) {
-
-				//case 0x4:
-
-				//	hflip = -1; dstRect.left = 15;
-				//	break;
-				//case 0x8:
-				//	vflip = -1; dstRect.top = 15;
-				//	break;
-				//case 0xC:
-				//	hflip = -1; dstRect.left = 15;
-				//	vflip = -1; dstRect.top = 15;
-				//	break;
-
-			}
-
-
-		}
-	}
-	thisFile->seek(100);
-	int bgPointers[5] = { 0 };
-	theBgs->Export(thisFile, bgPointers);
-
-
-
-	int position = thisFile->GetIndex();
-	//
-	thisFile->fputc(0xFF); thisFile->fputc(0xFF); thisFile->fputc(0xFF);
-	//this.enemyLists[0].Export(byteStream);
-	int val = 0;
-	/*if (this.header.spriteset1event > 0)
-	{
-	val = byteStream.Position;
-	this.enemyLists[1].Export(byteStream);
-	}*/
-	int val2 = 0;
-	/*if (this.header.spriteset2event > 0)
-	{
-	val2 = byteStream.Position;
-	this.enemyLists[2].Export(byteStream);
-	}*/
-	int position2 = thisFile->GetIndex();
-	thisFile->fputc(0x0);
-	/*this.doorList.Export(byteStream);*/
-
-	int position3 = thisFile->GetIndex();
-	thisFile->fputc(0x0);
-	//this.scrollList.Export(byteStream);
-	RHeader newHeader;
-	memset(&newHeader, 0, 0x3c);
-	newHeader.bTileset = 8;
-
-	newHeader.bBg0 = 0;
-	newHeader.bBg1 = 16;
-	newHeader.bBg2 = 0;
-	newHeader.lBg3 = 0;
-	thisFile->seek(32);
-	thisFile->fwrite(&newHeader, 1, sizeof(RHeader), true);
-	thisFile->seek(40);
-	for (int i = 0; i < 5; i++)
-	{
-		thisFile->fput32(bgPointers[i], true);
-	}
-	thisFile->seek(64);
-	thisFile->fput32(position, true);
-	thisFile->seek(72);
-	thisFile->fput32(val, true);
-	thisFile->seek(80);
-	thisFile->fput32(val2, true);
-	thisFile->seek(92);
-	thisFile->fput32(position2, true);
-	thisFile->fput32(position3, true);
-	thisFile->Save("test.mgr");
-
-	return 0;
 }
 
 

@@ -1,8 +1,10 @@
+#pragma once
 #include <vector>
 #include "RomClass.h"
 #include "Compresch/CompreschMain.h"
 #include "MemFile.h"
 #include "Backgrounds.h"
+#include "Logger.h"
 #include <map>
 using namespace std;
 #define LC_NOBANK  0x00
@@ -72,7 +74,10 @@ public:
 	//long SMDecomp(u32 offset);
 	RomClass System;
 	CompreschMain Compression;
-
+	unsigned short snes2gba_tilemap(uint16_t tile);
+	bool CompareTiles(unsigned char* srcTile, unsigned char* chkTile);
+	unsigned short TileExists(unsigned char* srcTile, vector<unsigned char*>*theTiles);
+	void UpdateTileTable(unsigned short oldMapping, unsigned short newMapping);
 	//Functions
 	SMClass(char* FilePath);
 	int BlitToBB();

@@ -106,11 +106,13 @@
     <ClCompile Include="Compresch\compresch_stdblock.cpp" />
     <ClCompile Include="Compresch\crunchtree.cpp" />
     <ClCompile Include="Compression.cpp" />
+    <ClCompile Include="Exporting.cpp" />
     <ClCompile Include="gameImage.cpp" />
     <ClCompile Include="gbaimage.cpp" />
     <ClCompile Include="gbatiles.cpp" />
     <ClCompile Include="globals.cpp" />
     <ClCompile Include="Layer.cpp" />
+    <ClCompile Include="Logger.cpp" />
     <ClCompile Include="mainpanel.cpp" />
     <ClCompile Include="MainWindow.cpp" />
     <ClCompile Include="MemFile.cpp" />
@@ -158,6 +160,7 @@
     <ClInclude Include="Compresch\resource.h" />
     <ClInclude Include="Compresch\sizelimits.h" />
     <ClInclude Include="Compression.h" />
+    <ClInclude Include="Exporting.h" />
     <ClInclude Include="gameImage.h" />
     <ClInclude Include="gbaimage.h" />
     <ClInclude Include="GBA.h" />
@@ -165,6 +168,7 @@
     <ClInclude Include="gbatypes.h" />
     <ClInclude Include="globals.h" />
     <ClInclude Include="Layer.h" />
+    <ClInclude Include="Logger.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="MainHeader.h" />
     <ClInclude Include="mainpanel.h" />

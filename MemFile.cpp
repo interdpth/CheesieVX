@@ -5,6 +5,7 @@ MemFile* MemFile::currentFile;
 MemFile::MemFile()
 {
 	IncreaseSize(5000);//Make a small footprint.
+	fileIndex = 0;
 }
 void MemFile::ZeroOut()
 {
@@ -12,8 +13,14 @@ void MemFile::ZeroOut()
 	{
 		theFile[counter] = 0;
 	}
+
 }
 
+void MemFile::ZeroSize()
+{
+	theFile.resize(0);
+	fileIndex = 0;	
+}
 void MemFile::IncreaseSize(int size)
 {
 	theFile.resize(theFile.size()+size);
@@ -25,10 +32,12 @@ MemFile::MemFile(int size)
 	ZeroOut();
 	fileIndex = 0;
 }
+
 unsigned char* MemFile::GetFile()
 {
 	return &theFile.front();
 }
+
 MemFile::MemFile(char* file)
 {
 	FILE* FP = fopen(file, "r+b");
@@ -42,6 +51,7 @@ MemFile::MemFile(char* file)
 	::fread(&theFile.front(), 1, len, FP);
 	fclose(FP);
 	FP = NULL;
+	fileIndex = 0;
 }
 
 
@@ -52,9 +62,9 @@ void MemFile::Save()
 void MemFile::Save(char* file)
 {
 	FILE* FP = fopen(file, "w+b");
-	fseek(FP, 0, SEEK_SET);
+	::fseek(FP, 0, SEEK_SET);
 	::fwrite(&theFile.front(), theFile.size(), 1, FP);
-	fclose(FP);
+	::fclose(FP);
 }
 unsigned char MemFile::fgetc()
 {

@@ -110,6 +110,8 @@
     <ClCompile Include="MemFile.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="Exporting.cpp" />
+    <ClCompile Include="Logger.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="app.h">
@@ -285,6 +287,12 @@
     </ClInclude>
     <ClInclude Include="MemFile.h">
       <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="Exporting.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Logger.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -32,6 +32,7 @@ public:
 	void ZeroOut();
 	long GetIndex();
 	void Align(int rem=4);
+	void ZeroSize();
 private: 
 	vector<unsigned char> theFile; 
 	long fileIndex; 
