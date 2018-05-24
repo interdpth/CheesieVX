@@ -79,6 +79,8 @@ public:
 	unsigned short TileExists(unsigned char* srcTile, vector<unsigned char*>*theTiles);
 	void UpdateTileTable(unsigned short oldMapping, unsigned short newMapping);
 	//Functions
+	int QuantifyTable();
+	int RemapRoomtiles();
 	SMClass(char* FilePath);
 	int BlitToBB();
 	int Setup();
@@ -100,10 +102,18 @@ public:
 	tTSA TSA;
 	u32 Pnt2Off(u32 pointer);
 	int FindHeaders();
+
+
+	//EXPORTING OCE
 	int ExportTileset();
-
 	int ExportTileTable();
-
+	int MappingExists(unsigned short* tiles, vector<unsigned short*>*newMap);
+	bool CompareTileTables(unsigned short* tiles, unsigned short* tiles2);
+	map<int, int> newTileTableMapping;
+	tTSA gbaTroid;
+	map<int, int> newTileMapping;
+	void SMClass::Remap();
+	Backgrounds* theBgs;
 };
 
 
