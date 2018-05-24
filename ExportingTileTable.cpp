@@ -42,10 +42,13 @@ int SMClass::MappingExists(unsigned short* tiles, vector<unsigned short*>*newMap
 
 int SMClass::QuantifyTable()
 {
+	Logger* newLog = new Logger("tiletableremap.txt");
 	newTileTableMapping.clear();
-	Logger::log->LogIt(Logger::DEBUG, "QUANTIFYING TABLE");
+	newLog->LogIt(Logger::DEBUG, "QUANTIFYING TABLE");
 	vector<unsigned short*> tiletableMappings;
 	vector<unsigned short*> newtiletableMappings;
+	int gbaTroidsize = gbaTroid.nTSA.size();
+	int oldBlocks = gbaTroidsize / 4;
 	for (int blockCounter = 0; blockCounter < gbaTroid.nTSA.size() / 4; blockCounter++)
 	{
 		unsigned short* theseBlocks = new unsigned short[4];
@@ -55,7 +58,7 @@ int SMClass::QuantifyTable()
 
 	char debugText[512] = { 0 };
 	sprintf(debugText, "%x tiles in the table", tiletableMappings.size());
-	Logger::log->LogIt(Logger::DEBUG, debugText);
+	newLog->LogIt(Logger::DEBUG, debugText);
 	for (int blockCounter = 0; blockCounter < tiletableMappings.size(); blockCounter++)
 	{
 		unsigned short* newData = new unsigned short[4];
@@ -72,7 +75,7 @@ int SMClass::QuantifyTable()
 			newTileTableMapping[blockCounter] = newtiletableMappings.size() - 1;
 			sprintf(debugText, "Inserting block ID %x -> %x : %x %x %x %x \n", blockCounter, newTileTableMapping[blockCounter], newData[0], newData[1], newData[2], newData[3]);
 			
-			Logger::log->LogIt(Logger::DEBUG, debugText);
+			newLog->LogIt(Logger::DEBUG, debugText);
 
 		}
 		else
@@ -91,36 +94,49 @@ int SMClass::QuantifyTable()
 				keyIndex = 0xBAAD;
 			}
 			sprintf(debugText, "Found duplicate id %x tilemapping is %x keyIndex is %x", blockCounter, mappingId, keyIndex);
-			Logger::log->LogIt(Logger::DEBUG, debugText);
+			newLog->LogIt(Logger::DEBUG, debugText);
 			newTileTableMapping[blockCounter] = keyIndex;
 			sprintf(debugText, "Remapping from tile no %x -> mappingid %x -> lookedup index %x -> %x\n", blockCounter, mappingId, keyIndex, newTileTableMapping[blockCounter]);
-			Logger::log->LogIt(Logger::DEBUG, debugText);
+			newLog->LogIt(Logger::DEBUG, debugText);
 		}
 	}
 
 	gbaTroid.nTSA.clear();
 
 	sprintf(debugText, "%x tiles in the table", newtiletableMappings.size());
-	Logger::log->LogIt(Logger::DEBUG, debugText);
+	newLog->LogIt(Logger::DEBUG, debugText);
+
+	for (auto &i : newTileTableMapping)
+	{
+		sprintf(debugText, "tile %x = %x tile in the table", i.first, i.second);
+		newLog->LogIt(Logger::DEBUG, debugText);
+	}
+	
+	
+
+
 	for (int blockCounter = 0; blockCounter < newtiletableMappings.size(); blockCounter++)
 	{
 		unsigned short tilemap[4] = { 0 };
+		
 		memcpy(tilemap, newtiletableMappings.at(blockCounter), 8);
+
 		for (int i = 0; i < 4; i++)
 		{
 			gbaTroid.nTSA.push_back(tilemap[i]);
 		}
 		delete[] newtiletableMappings[blockCounter];
 	}
+
 	sprintf(debugText, "%x tiles in the table", newtiletableMappings.size());
-	Logger::log->LogIt(Logger::DEBUG, debugText);
+	newLog->LogIt(Logger::DEBUG, debugText);
 
 	for (int blockCounter = 0; blockCounter < gbaTroid.nTSA.size() / 4; blockCounter++)
 	{
 
 		delete[] tiletableMappings[blockCounter];
 	}
-
+	delete newLog;
 	return 0;
 }
 int SMClass::RemapRoomtiles()

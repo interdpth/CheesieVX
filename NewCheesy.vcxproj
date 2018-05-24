@@ -107,6 +107,8 @@
     <ClCompile Include="Compresch\crunchtree.cpp" />
     <ClCompile Include="Compression.cpp" />
     <ClCompile Include="Exporting.cpp" />
+    <ClCompile Include="ExportingTileset.cpp" />
+    <ClCompile Include="ExportingTileTable.cpp" />
     <ClCompile Include="gameImage.cpp" />
     <ClCompile Include="gbaimage.cpp" />
     <ClCompile Include="gbatiles.cpp" />
@@ -118,6 +120,7 @@
     <ClCompile Include="MemFile.cpp" />
     <ClCompile Include="Menu.cpp" />
     <ClCompile Include="picWindow.cpp" />
+    <ClCompile Include="Remap.cpp" />
     <ClCompile Include="RomClass.cpp" />
     <ClCompile Include="SMClass.cpp" />
     <ClCompile Include="tilebuffer.cpp" />

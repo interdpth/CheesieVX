@@ -112,7 +112,7 @@ public:
 	map<int, int> newTileTableMapping;
 	tTSA gbaTroid;
 	map<int, int> newTileMapping;
-	void SMClass::Remap();
+	void Remap();
 	Backgrounds* theBgs;
 };
 
