@@ -390,7 +390,7 @@ int SMClass::DrawRoom(wxMemoryDC* dst, wxMemoryDC* src) {
 			dstRect.top = 0;
 			dstRect.right = 0;
 			dstRect.bottom = 0;
-			/*switch (flip) {
+			switch (flip) {
 
 			case 0x4:
 
@@ -404,7 +404,7 @@ int SMClass::DrawRoom(wxMemoryDC* dst, wxMemoryDC* src) {
 				vflip = -1; dstRect.top = 15;
 				break;
 
-			}*/
+			}
 
 			//Upon reviewing this code I am only halfway sure of how it works. XD
 			dstRect.left += thisX * 16;

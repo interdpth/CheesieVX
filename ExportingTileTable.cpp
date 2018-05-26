@@ -1,6 +1,12 @@
 #include "SMClass.h"
-
-
+vector<unsigned short*> newMapData;
+block::block(unsigned short a, unsigned short b, unsigned short c, unsigned short d)
+{
+	map1 = a;
+	map2 = b; 
+	map3 = c; 
+	map4 = d;
+}
 int SMClass::ExportTileTable()
 {
 	gbaTroid.max = TSA.nTSA.size() / 8;
@@ -43,37 +49,38 @@ int SMClass::MappingExists(unsigned short* tiles, vector<unsigned short*>*newMap
 int SMClass::QuantifyTable()
 {
 	Logger* newLog = new Logger("tiletableremap.txt");
-	newTileTableMapping.clear();
+	newTileTableMappingIndexes.clear();
+	newTileTableMappingIndexes[0xFF] = 0x4F;
 	newLog->LogIt(Logger::DEBUG, "QUANTIFYING TABLE");
-	vector<unsigned short*> tiletableMappings;
-	vector<unsigned short*> newtiletableMappings;
+	vector<unsigned short*> oldMapData;
+	
 	int gbaTroidsize = gbaTroid.nTSA.size();
-	int oldBlocks = gbaTroidsize / 4;
-	for (int blockCounter = 0; blockCounter < gbaTroid.nTSA.size() / 4; blockCounter++)
+	int oldBlockCount = gbaTroidsize / 4;
+	for (int blockCounter = 0; blockCounter < oldBlockCount; blockCounter++)
 	{
 		unsigned short* theseBlocks = new unsigned short[4];
 		memcpy(theseBlocks, &gbaTroid.nTSA[blockCounter * 4], 8);
-		tiletableMappings.push_back(theseBlocks);
+		oldMapData.push_back(theseBlocks);
 	}
 
 	char debugText[512] = { 0 };
-	sprintf(debugText, "%x tiles in the table", tiletableMappings.size());
+	sprintf(debugText, "%x tiles in the table", oldMapData.size());
 	newLog->LogIt(Logger::DEBUG, debugText);
-	for (int blockCounter = 0; blockCounter < tiletableMappings.size(); blockCounter++)
+	for (int blockCounter = 0; blockCounter < oldMapData.size(); blockCounter++)
 	{
-		unsigned short* newData = new unsigned short[4];
-		memcpy(newData, tiletableMappings[blockCounter], 8);
-		int mappingId = MappingExists(newData, &newtiletableMappings);
+		unsigned short* thisTileMapblock = new unsigned short[4];
+		memcpy(thisTileMapblock, oldMapData[blockCounter], 8);
+		int thisBlockMappingIndex = MappingExists(thisTileMapblock, &newMapData);
 		
-		if (mappingId == 0xBAAD)
+		if (thisBlockMappingIndex == 0xBAAD)
 		{
 			sprintf(debugText, "Found new tile", blockCounter);
 
 			Logger::log->LogIt(Logger::DEBUG, debugText);
 
-			newtiletableMappings.push_back(newData);
-			newTileTableMapping[blockCounter] = newtiletableMappings.size() - 1;
-			sprintf(debugText, "Inserting block ID %x -> %x : %x %x %x %x \n", blockCounter, newTileTableMapping[blockCounter], newData[0], newData[1], newData[2], newData[3]);
+			newMapData.push_back(thisTileMapblock);
+			newTileTableMappingIndexes[blockCounter] = newMapData.size() - 1;
+			sprintf(debugText, "Inserting block ID %x -> %x : %x %x %x %x \n", blockCounter, newTileTableMappingIndexes[blockCounter], thisTileMapblock[0], thisTileMapblock[1], thisTileMapblock[2], thisTileMapblock[3]);
 			
 			newLog->LogIt(Logger::DEBUG, debugText);
 
@@ -81,10 +88,12 @@ int SMClass::QuantifyTable()
 		else
 		{
 			int keyIndex = 0xBAAD;
-			for (auto &i : newTileTableMapping)
+			for (auto &i : newTileTableMappingIndexes)
 			{
-				if (i.second == mappingId) {
+			
+				if (i.second == thisBlockMappingIndex) {
 					keyIndex = i.first;
+					
 					break; // to stop searching
 				}
 			}
@@ -93,48 +102,55 @@ int SMClass::QuantifyTable()
 			{
 				keyIndex = 0xBAAD;
 			}
-			sprintf(debugText, "Found duplicate id %x tilemapping is %x keyIndex is %x", blockCounter, mappingId, keyIndex);
+			sprintf(debugText, "Found duplicate id %x tilemapping is %x keyIndex is %x", blockCounter, thisBlockMappingIndex, keyIndex);
 			newLog->LogIt(Logger::DEBUG, debugText);
-			newTileTableMapping[blockCounter] = keyIndex;
-			sprintf(debugText, "Remapping from tile no %x -> mappingid %x -> lookedup index %x -> %x\n", blockCounter, mappingId, keyIndex, newTileTableMapping[blockCounter]);
+			newTileTableMappingIndexes[blockCounter] = keyIndex;
+			sprintf(debugText, "Remapping from tile no %x -> mappingid %x -> lookedup index %x -> %x\n", blockCounter, thisBlockMappingIndex, keyIndex, newTileTableMappingIndexes[blockCounter]);
 			newLog->LogIt(Logger::DEBUG, debugText);
 		}
 	}
 
 	gbaTroid.nTSA.clear();
 
-	sprintf(debugText, "%x tiles in the table", newtiletableMappings.size());
+	sprintf(debugText, "%x tiles in the table", newMapData.size());
 	newLog->LogIt(Logger::DEBUG, debugText);
 
-	for (auto &i : newTileTableMapping)
+	for (auto &i : newTileTableMappingIndexes)
 	{
 		sprintf(debugText, "tile %x = %x tile in the table", i.first, i.second);
 		newLog->LogIt(Logger::DEBUG, debugText);
 	}
 	
-	
 
+	//
+	//for (int i = 0; i < newMapData.size(); i++)
+	//{
+	//	for (int y = 0; y < 4; y++)
+	//	{
+	//		gbaTroid.nTSA.push_back(newMapData.at(i)[y]);
+	//	}
+	//}
 
-	for (int blockCounter = 0; blockCounter < newtiletableMappings.size(); blockCounter++)
+	for (int blockCounter = 0; blockCounter < newMapData.size(); blockCounter++)
 	{
 		unsigned short tilemap[4] = { 0 };
 		
-		memcpy(tilemap, newtiletableMappings.at(blockCounter), 8);
+		memcpy(tilemap, newMapData.at(blockCounter), 8);
 
 		for (int i = 0; i < 4; i++)
 		{
 			gbaTroid.nTSA.push_back(tilemap[i]);
 		}
-		delete[] newtiletableMappings[blockCounter];
+		//delete[] newMapData[blockCounter];
 	}
 
-	sprintf(debugText, "%x tiles in the table", newtiletableMappings.size());
+	sprintf(debugText, "%x tiles in the table", newMapData.size());
 	newLog->LogIt(Logger::DEBUG, debugText);
 
 	for (int blockCounter = 0; blockCounter < gbaTroid.nTSA.size() / 4; blockCounter++)
 	{
 
-		delete[] tiletableMappings[blockCounter];
+		delete[] oldMapData[blockCounter];
 	}
 	delete newLog;
 	return 0;

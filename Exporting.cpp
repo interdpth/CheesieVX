@@ -6,7 +6,7 @@ int SMClass::MageExport(int Area, int Room, bool IsMf)
 	ExportTileset();
 	ExportTileTable();
 	QuantifyTable();
-	Remap();
+	Remap(theBgs->bg1);
 	/*QuantifyTable();
 	Remap();*/
 	DeleteFileA("gbatroid.tiletable");

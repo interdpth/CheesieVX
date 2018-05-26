@@ -4,7 +4,7 @@ unsigned short SMClass::snes2gba_tilemap(uint16_t tile)
 {
 	unsigned short newtile = tile & 0x3FF;
 	char buffer[256] = { 0 };
-	int mappedTile = newTileMapping[newtile];
+	int mappedTile = newTileMappingIndexes[newtile];
 
 	//If there's too many tiles, blank it out. 
 	if ((signed int)(mappedTile + 0xC0) > (signed int)0x3FF)
@@ -74,7 +74,7 @@ int SMClass::ExportTileset()
 		{
 			newTiles.push_back(thisTile);
 			//adjust tilemap
-			newTileMapping[rawTileIndex] = newTiles.size() - 1;
+			newTileMappingIndexes[rawTileIndex] = newTiles.size() - 1;
 
 			sprintf(debugtext, "Inserting tile %x -> %x\n", rawTileIndex, rawTileIndex, newTiles.size() - 1);
 			Logger::log->LogIt(Logger::DEBUG, debugtext);
@@ -84,7 +84,7 @@ int SMClass::ExportTileset()
 
 
 			int keyIndex = 0xBAAD;
-			for (auto &i : newTileMapping) {
+			for (auto &i : newTileMappingIndexes) {
 				if (i.second == tileIndex) {
 					keyIndex = i.first;
 					break; // to stop searching
@@ -95,8 +95,8 @@ int SMClass::ExportTileset()
 			{
 				keyIndex = keyIndex + 1;
 			}
-			newTileMapping[rawTileIndex] = keyIndex;
-			sprintf(debugtext, "Remapping from tile %x -> lookedup index %x -> %x\n", rawTileIndex, tileIndex, newTileMapping[rawTileIndex]);
+			newTileMappingIndexes[rawTileIndex] = keyIndex;
+			sprintf(debugtext, "Remapping from tile %x -> lookedup index %x -> %x\n", rawTileIndex, tileIndex, newTileMappingIndexes[rawTileIndex]);
 			Logger::log->LogIt(Logger::DEBUG, debugtext);
 
 		}

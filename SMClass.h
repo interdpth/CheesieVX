@@ -21,6 +21,12 @@ using namespace std;
 #define u32 unsigned long
 #ifndef MDBSTUFF
 #define MDBSTUFF
+class block
+{
+public:
+	unsigned short map1, map2, map3, map4;
+	block(unsigned short a, unsigned short b, unsigned short c, unsigned short d);
+};
 struct MDB_Header{
 	unsigned char  unknown1;
 	unsigned char  Area;
@@ -109,10 +115,12 @@ public:
 	int ExportTileTable();
 	int MappingExists(unsigned short* tiles, vector<unsigned short*>*newMap);
 	bool CompareTileTables(unsigned short* tiles, unsigned short* tiles2);
-	map<int, int> newTileTableMapping;
+	map<int, int> newTileTableMappingIndexes;
+	vector<unsigned short*> newMapData;
 	tTSA gbaTroid;
-	map<int, int> newTileMapping;
-	void Remap();
+	map<int, int> newTileMappingIndexes;
+	void Remap(BG* background);
+	
 	Backgrounds* theBgs;
 };
 
