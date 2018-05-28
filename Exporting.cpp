@@ -2,13 +2,19 @@
 
 int SMClass::MageExport(int Area, int Room, bool IsMf)
 {
-	Backgrounds* theBgs = new Backgrounds(RoomHeader.Width * 16, RoomHeader.Height * 16);
+
 	ExportTileset();
+
+
 	ExportTileTable();
+
 	QuantifyTable();
+	int blockCountBefore = gbaTroid.nTSA.size() / 4;
+
 	Remap(theBgs->bg1);
-	/*QuantifyTable();
-	Remap();*/
+
+	int difference = gbaTroid.nTSA.size() / 4 - blockCountBefore;
+
 	DeleteFileA("gbatroid.tiletable");
 	FILE* fp = fopen("gbatroid.tiletable", "w+b");
 	int len = gbaTroid.nTSA.size();

@@ -33,7 +33,17 @@ bool SMClass::CompareTileTables(unsigned short* tiles, unsigned short* tiles2)
 {
 	return memcmp(tiles, tiles2, 8) == 0;	
 }
-
+int SMClass::MappingExists(unsigned short* tiles, vector<unsigned short>*newMap)
+{
+	for (int mappingCounter = 0; mappingCounter < newMap->size()/4; mappingCounter++)
+	{
+		if (CompareTileTables(tiles, &newMap->front() + mappingCounter * 4));
+		{
+			return mappingCounter;
+		}
+	}
+	return 0xBAAD;
+}
 int SMClass::MappingExists(unsigned short* tiles, vector<unsigned short*>*newMap)
 {
 	for (int mappingCounter = 0; mappingCounter < newMap->size(); mappingCounter++)
@@ -46,11 +56,12 @@ int SMClass::MappingExists(unsigned short* tiles, vector<unsigned short*>*newMap
 	return 0xBAAD;
 }
 
-int SMClass::QuantifyTable()
+int SMClass::QuantifyTable(int q)
 {
 	Logger* newLog = new Logger("tiletableremap.txt");
 	newTileTableMappingIndexes.clear();
 	newTileTableMappingIndexes[0xFF] = 0x4F;
+	Flip2Tiles(theBgs->bg1);
 	newLog->LogIt(Logger::DEBUG, "QUANTIFYING TABLE");
 	vector<unsigned short*> oldMapData;
 	
@@ -159,7 +170,7 @@ int SMClass::RemapRoomtiles()
 {
 	int  Width = RoomHeader.Width * 16;
 	int Height = RoomHeader.Height * 16;
-	u16* TileBuf2D = &Map[1];
+	u16* TileBuf2D = &theBgs->bg1->blocks[1];
 	unsigned short tsa[4];
 	for (int thisY = 0; thisY < Height; thisY++) {
 
