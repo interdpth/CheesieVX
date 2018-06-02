@@ -6,7 +6,6 @@
 #include "Backgrounds.h"
 #include "Logger.h"
 #include <map>
-#include <wx/bitmap.h>
 using namespace std;
 #define LC_NOBANK  0x00
 #define LC_LOROM   0x01  //LoROM
@@ -70,7 +69,7 @@ struct tTSA {
 class SMClass{
 public:
 	int ExportTilemap();
-	
+	std::vector<u16> Map; 
 	int GrabRoom();
 	//Vars
 	int MageExport(int Area, int Room, bool IsMf);
@@ -86,16 +85,14 @@ public:
 	unsigned short TileExists(unsigned char* srcTile, vector<unsigned char*>*theTiles);
 	void UpdateTileTable(unsigned short oldMapping, unsigned short newMapping);
 	//Functions
-	void Flip2Tiles(BG* background);
-	int QuantifyTable(int quantTry=0);
+	int QuantifyTable();
 	int RemapRoomtiles();
 	SMClass(char* FilePath);
 	int BlitToBB();
 	int Setup();
 	int LoadHeader(u32 Address);
-	int DrawLayer(wxMemoryDC* dst, wxMemoryDC* src, unsigned short* TileBuf2D, wxRasterOperationMode op = wxCOPY);// wxSwxAND);
+	int DrawRoom(wxMemoryDC* dst, wxMemoryDC* src);
 	int LoadMDB_StateSelect(u32 Address);
-	int MappingExists(unsigned short* tiles, vector<unsigned short>*newMap);
 	MDB_Header RoomHeader;
 	int LoadMDB_Roomstate(u32 Address, MDB_Roomstate* OutputMDB_Roomstate);
 	~SMClass();

@@ -62,7 +62,7 @@ MainPanel::MainPanel(wxWindow* parent)
 	
 	//mainbox->Add(new wxListBox(this,1));
 	AppPath=wxGetCwd();
-	int Address_Renamed =0x79938;//0x791F8; //0x79e9f;//0x7DD58;////0x79f64;
+	int Address_Renamed = 0x7DD58;//0x79938;//0x791F8;
 
 	TheGame=new SMClass("Super_Metroid_JU_.sfc");
 	TheGame->LoadHeader(Address_Renamed);
@@ -79,8 +79,7 @@ MainPanel::MainPanel(wxWindow* parent)
 	TheTileset->gI->MakeImage(NULL,NULL,0,0,32,32);
 	TheTileset->Refresh();
 	
-	TheGame->DrawLayer(&TheMapWindow->dcPic, &TheTileset->dcPic, &TheGame->theBgs->bg2->blocks[0]);
-	TheGame->DrawLayer(&TheMapWindow->dcPic,&TheTileset->dcPic, &TheGame->theBgs->bg1->blocks[0], wxOR);
+	TheGame->DrawRoom(&TheMapWindow->dcPic,&TheTileset->dcPic);
 	TheGame->MageExport(0, 0, false);
 	TheMapWindow->Refresh();
 }
@@ -88,6 +87,8 @@ MainPanel::MainPanel(wxWindow* parent)
 // more building (box building -- wee)
 
 void MainPanel::HandleMenu(wxCommandEvent& event){
+int shit;
+shit=0;
 
 }
 /////////////////////////////////////////////

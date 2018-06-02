@@ -1,5 +1,5 @@
 #include "SMClass.h"
-
+#include <wx/bitmap.h>
 
 void          EncodePal(unsigned short *palGBA, COLOR *palPC, int numpals, char palpos)
 {
@@ -301,124 +301,18 @@ int  SMClass::LoadMDB_StateSelect(u32 Address) {
 	return RoomStatePointers.size();
 }
 int SMClass::GrabRoom() {
-	theBgs = new Backgrounds(RoomHeader.Width * 16, RoomHeader.Height * 16);
-	char debug[512];
-	theBgs->bg2 = new BG(RoomHeader.Width * 16, RoomHeader.Height * 16);
-	//Load BG1/SM Main map
+
 	vector<u8> buffer;
-	//Main tiles
 	u32 size = SMDecomp(RoomStates[iRoomState].Roommap_p, &buffer);
-	theBgs->bg1->blocks.resize(RoomHeader.Width * 16* RoomHeader.Height * 16);
-	memcpy(&theBgs->bg1->blocks[0], &buffer[0], RoomHeader.Width * 16* RoomHeader.Height * 16*2);
-	vector<unsigned short> buf2; 
-	for (int counter = 1; counter < theBgs->bg1->blocks.size(); counter++)
-	{
-		buf2.push_back(theBgs->bg1->blocks[counter]);
-	}
 
-	theBgs->bg1->blocks.clear();
-	for (int counter = 0; counter < buf2.size(); counter++)
-	{
-		theBgs->bg1->blocks.push_back(buf2[counter]);
-	}
-
-	//determine background
+	Map.resize(size / 2);
+	memcpy(&Map[0], &buffer[0], size);
 
 
-
-	unsigned long bgdata_pointer = RoomStates[iRoomState].Bgdata_p;
-
-	if (RoomStates[iRoomState].Layer2_Scr & 0x0101 ) {
-		unsigned int LastROMPosition;
-		long size = 0;
-		std::vector<u8> cmpBuffer;
-		std::vector<u8> dcmpBuffer;
-		cmpBuffer.resize(0x10000);
-		dcmpBuffer.resize(0x10000);
-		unsigned char* src, dst;
-		unsigned char dataDump[512];
-		FILE* fp = fopen(System.RomFilePath, "r+b");
-		if (fp) {
-			fseek(fp,Pnt2Off(bgdata_pointer), SEEK_SET);
-
-			vector<unsigned char> data;
-			unsigned char byteCode = fgetc(fp);
-			unsigned long curAddr;
-
-			unsigned short instruction;
-			fread(&instruction, 1, 2, fp);
-			unsigned long dataOffset=0;
-			unsigned long dstOffset = 0;
-			unsigned short vramAddr = 0;
-			unsigned short size = 0;
-			unsigned short doorInfo = 0xBAAD;
-			u32 checker;
-			char bytes[3];		
-
-			while (instruction!=0)
-			{
-				dataOffset = 0;
-				dstOffset = 0;
-				vramAddr = 0;
-				size = 0;
-				doorInfo = 0xBAAD;
-				switch (instruction)
-				{
-				case 0xe:
-					fread(&doorInfo, 2, 1, fp);
-				case 8:
-				case 2:
-					fread(bytes, 3, 1, fp);
-					fread(&vramAddr, 1, 2, fp);
-					fread(&size, 1, 2, fp);
-					curAddr = ftell(fp);
-
-					checker = (int)bytes[0] & 0xFF;
-					checker |= (int)(bytes[1] << 8 & 0x00FF00);
-					checker |= (int)(bytes[2] << 16 & 0xFF0000);
-					checker = Pnt2Off(checker);					
-					sprintf(debug, "Would read bg data via instruction %x from %x to %x size %x", instruction, checker, vramAddr, size);
-					if (doorInfo != 0xBaad)
-					{
-						sprintf(debug, "%s source door %x", debug, doorInfo);
-					}
-					Logger::log->LogIt(Logger::DEBUG, debug);
-					break;
-				case 4:
-					fread(bytes, 3, 1, fp);
-					fread(&dstOffset, 1, 2, fp);
-					curAddr = ftell(fp);
-
-					checker = (int)bytes[0] & 0xFF;
-					checker |= (int)(bytes[1] << 8 & 0x00FF00);
-					checker |= (int)(bytes[2] << 16 & 0xFF0000);
-					checker = Pnt2Off(checker);
-					sprintf(debug, "Would read bg data via instruction %x from %x to %x", instruction, checker, dstOffset);
-					Logger::log->LogIt(Logger::DEBUG, debug);
-					break;
-					break;
-				default:
-					sprintf(debug, "Unsupported BG_DATA instruction %x", instruction);
-					Logger::log->LogIt(Logger::ERRORZ, debug);
-					break;
-				}
-
-				fread(&instruction, 1, 2, fp);
-			}
-			fclose(fp);
-		}		
-	}
-	else
-	{
-		//Load bg from level data
-	
-		theBgs->bg2->blocks.resize(RoomHeader.Width * 16 * RoomHeader.Height * 16);
-		int size = buffer.size();
-		int possibles = size / 3;
-		memcpy(&theBgs->bg2->blocks[0], &buffer[RoomHeader.Width * 16 * RoomHeader.Height * 16*3], RoomHeader.Width * 16 * RoomHeader.Height * 16*2);
-		
-	}
 	return 0;
+
+
+
 }
 
 int SMClass::FindHeaders() {/*
@@ -461,7 +355,7 @@ int SMClass::LoadHeader(u32 Address) {
 
 
 
-int SMClass::DrawLayer(wxMemoryDC* dst, wxMemoryDC* src, unsigned short* TileBuf2D, wxRasterOperationMode op) {
+int SMClass::DrawRoom(wxMemoryDC* dst, wxMemoryDC* src) {
 	int thisX = 0, thisY = 0, mX = 0, mY = 0;
 	u16 TILE = 0;
 	int curTile = 0;
@@ -476,7 +370,7 @@ int SMClass::DrawLayer(wxMemoryDC* dst, wxMemoryDC* src, unsigned short* TileBuf
 	int ThisX = 0;
 	RECT srcRect = { 0,0,0,0 };
 	RECT dstRect = { 0,0,0,0 };;
-	
+	u16* TileBuf2D = &Map[1];
 	//imgMap.Create(Width*16, Height*16);
 
 	//Image* pic=&imgMap;
@@ -487,7 +381,7 @@ int SMClass::DrawLayer(wxMemoryDC* dst, wxMemoryDC* src, unsigned short* TileBuf
 		for (thisX = 0; thisX < (Width); thisX++) {// from here if something is enabled then draw it 
 			hflip = 1;
 			vflip = 1;
-			curTile = TileBuf2D[1+thisX + (thisY * Width)];
+			curTile = TileBuf2D[thisX + (thisY * Width)];
 			TILE = (curTile & 0x3ff);
 			flip = (curTile & 0xC00) >> 8;
 
@@ -525,7 +419,7 @@ int SMClass::DrawLayer(wxMemoryDC* dst, wxMemoryDC* src, unsigned short* TileBuf
 
 
 
-			dst->StretchBlit(dstRect.left, dstRect.top, dstRect.right, dstRect.bottom, src, srcRect.left, srcRect.top, 16, 16,op);
+			dst->StretchBlit(dstRect.left, dstRect.top, dstRect.right, dstRect.bottom, src, srcRect.left, srcRect.top, 16, 16);
 		}
 	}
 	//BlitToBB();
@@ -586,11 +480,9 @@ long SMClass::SMDecomp(u32 offset, vector<u8>* buffer) {
 		fread(&cmpBuffer[0], 1, cmpBuffer.size(), fp);
 		size = Compression.Main_Decompress(&dcmpBuffer[0], &cmpBuffer[0], cmpBuffer.size());
 		/// size=LunarDecompress(buffer,offset,0x10000,4,0,&LastROMPosition);
-		if (size != 0)
-		{
-			buffer->resize(size);
-			memcpy(&buffer->front(), &dcmpBuffer[0], size);
-		}
+		buffer->resize(size);
+		memcpy(&buffer->front(), &dcmpBuffer[0], size);
+
 		fclose(fp);
 	}
 	//if (!size)
