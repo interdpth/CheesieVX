@@ -120,7 +120,7 @@ public:
 	tTSA gbaTroid;
 	map<int, int> newTileMappingIndexes;
 	void Remap(BG* background);
-	
+	void QuantifyMapTiles(BG* background);
 	Backgrounds* theBgs;
 };
 

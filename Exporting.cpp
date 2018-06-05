@@ -3,13 +3,21 @@
 int SMClass::MageExport(int Area, int Room, bool IsMf)
 {
 	Backgrounds* theBgs = new Backgrounds(RoomHeader.Width * 16, RoomHeader.Height * 16);
+
+
+	newTileTableMappingIndexes.clear();
+	newMapData.clear();
+theBgs->bg1->blocks.resize(RoomHeader.Width * 16 * RoomHeader.Height * 16);
+
+	memcpy(&theBgs->bg1->blocks.front(), &Map.front() + 1, RoomHeader.Width * 16 * RoomHeader.Height * 16 * 2);
 	ExportTileset();
+
 	ExportTileTable();
+		QuantifyMapTiles(theBgs->bg1);
+
+	
 
 
-	theBgs->bg1->blocks.resize(RoomHeader.Width * 16 * RoomHeader.Height * 16);
-
-	memcpy(&theBgs->bg1->blocks.front(), &Map.front()+1, RoomHeader.Width * 16 * RoomHeader.Height * 16*2);
 	QuantifyTable();
 	Remap(theBgs->bg1);
 	/*QuantifyTable();

@@ -49,10 +49,9 @@ int SMClass::MappingExists(unsigned short* tiles, vector<unsigned short*>*newMap
 int SMClass::QuantifyTable()
 {
 	Logger* newLog = new Logger("tiletableremap.txt");
-	newTileTableMappingIndexes.clear();
+	
 	newLog->LogIt(Logger::DEBUG, "QUANTIFYING TABLE");
 	vector<unsigned short*> oldMapData;
-	newMapData.clear();
 	int gbaTroidsize = gbaTroid.nTSA.size();
 	int oldBlockCount = gbaTroidsize / 4;
 	for (int blockCounter = 0; blockCounter < oldBlockCount; blockCounter++)
@@ -119,6 +118,16 @@ int SMClass::QuantifyTable()
 		}
 		//delete[] newMapData[blockCounter];
 	}
+
+
+	do
+	{
+		unsigned short tilemap[4] = { 0x40,0x40,0x40,0x40 };
+		for (int i = 0; i < 4; i++)
+		{
+			gbaTroid.nTSA.push_back(tilemap[i]);
+		}
+	} while ((gbaTroid.nTSA.size() / 4) % 0x10);
 
 	sprintf(debugText, "%x tiles in the table", newMapData.size());
 	newLog->LogIt(Logger::DEBUG, debugText);
