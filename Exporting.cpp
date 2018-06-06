@@ -2,18 +2,32 @@
 
 int SMClass::MageExport(int Area, int Room, bool IsMf)
 {
-	Backgrounds* theBgs = new Backgrounds(RoomHeader.Width * 16, RoomHeader.Height * 16);
-
-
+	
 	newTileTableMappingIndexes.clear();
 	newMapData.clear();
-theBgs->bg1->blocks.resize(RoomHeader.Width * 16 * RoomHeader.Height * 16);
 
-	memcpy(&theBgs->bg1->blocks.front(), &Map.front() + 1, RoomHeader.Width * 16 * RoomHeader.Height * 16 * 2);
 	ExportTileset();
 
 	ExportTileTable();
-		QuantifyMapTiles(theBgs->bg1);
+	vector<unsigned short*> oldMapData;
+	int gbaTroidsize = gbaTroid.nTSA.size();
+	int oldBlockCount = gbaTroidsize / 4;
+	for (int blockCounter = 0; blockCounter < oldBlockCount; blockCounter++)
+	{
+		unsigned short* theseBlocks = new unsigned short[4];
+		memcpy(theseBlocks, &gbaTroid.nTSA[blockCounter * 4], 8);
+		oldMapData.push_back(theseBlocks);
+	}
+	newMapData.clear();
+	//automap
+	for (int blockCounter = 0; blockCounter < 0x100; blockCounter++)
+	{
+		unsigned short* thisTileMapblock = new unsigned short[4];
+		memcpy(thisTileMapblock, oldMapData[blockCounter], 8);
+		newMapData.push_back(thisTileMapblock);
+		newTileTableMappingIndexes[blockCounter] = newMapData.size() - 1;
+	}
+	QuantifyMapTiles(theBgs->bg1);
 
 	
 
@@ -22,6 +36,7 @@ theBgs->bg1->blocks.resize(RoomHeader.Width * 16 * RoomHeader.Height * 16);
 	Remap(theBgs->bg1);
 	/*QuantifyTable();
 	Remap();*/
+
 	DeleteFileA("gbatroid.tiletable");
 	FILE* fp = fopen("gbatroid.tiletable", "w+b");
 	int len = gbaTroid.nTSA.size();

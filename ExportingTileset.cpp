@@ -60,8 +60,19 @@ int SMClass::ExportTileset()
 		rawTiles.push_back(thisTile);
 	}
 
+	for (int rawTileIndex = 0x300; rawTileIndex < rawTiles.size(); rawTileIndex++)
+	{
+
+		unsigned char* thisTile = new unsigned char[32];
+		memcpy(thisTile, rawTiles.at(rawTileIndex), 32);
+
+		newTiles.push_back(thisTile);
+		//adjust tilemap
+		newTileMappingIndexes[rawTileIndex] = newTiles.size() - 1;
+	}
+
 	Logger::log->LogIt(Logger::DEBUG, "Begin remapping");
-	for (int rawTileIndex = 0; rawTileIndex < rawTiles.size() - 1; rawTileIndex++)
+	for (int rawTileIndex = 0; rawTileIndex < 0x300; rawTileIndex++)
 	{
 
 		unsigned char* thisTile = new unsigned char[32];

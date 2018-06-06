@@ -22,7 +22,7 @@ Backgrounds::Backgrounds(int width, int height)
 
 	bg1 = new BG(width, height);
 
-	bg2 = NULL;// new BG(width, height);
+	bg2 = new BG(width, height);
 
 	bg3 = NULL;// new BG(width, height);
 

@@ -25,6 +25,7 @@ int SMClass::ExportTileTable()
 		unsigned short pftt = TSA.nTSA[tsaCounter];
 		gbaTroid.nTSA[tsaCounter] = snes2gba_tilemap(pftt);
 	}
+	
 
 	return 0;
 }
@@ -61,10 +62,12 @@ int SMClass::QuantifyTable()
 		oldMapData.push_back(theseBlocks);
 	}
 
+
+
 	char debugText[512] = { 0 };
 	sprintf(debugText, "%x tiles in the table", oldMapData.size());
 	newLog->LogIt(Logger::DEBUG, debugText);
-	for (int blockCounter = 0; blockCounter < oldMapData.size(); blockCounter++)
+	for (int blockCounter = 0x100; blockCounter < oldMapData.size(); blockCounter++)
 	{
 		unsigned short* thisTileMapblock = new unsigned short[4];
 		memcpy(thisTileMapblock, oldMapData[blockCounter], 8);

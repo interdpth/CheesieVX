@@ -33,7 +33,9 @@ void BG::Export(MemFile* theFile)
 		thelayer->fputc(height);
 		thelayer->fwrite(compBuffer, sizeof(char), compLen + 4, true);
 
-		thelayer->Save("blah.rlebg");
+		char fn[512] = { 0 };
+		sprintf(fn, "bg%d.rlebg", (int)layer);
+		thelayer->Save(fn);
 	}
 	/*else if (this.IsLZ77)
 	{

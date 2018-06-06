@@ -70,6 +70,7 @@ class SMClass{
 public:
 	int ExportTilemap();
 	std::vector<u16> Map; 
+
 	int GrabRoom();
 	//Vars
 	int MageExport(int Area, int Room, bool IsMf);
@@ -91,7 +92,7 @@ public:
 	int BlitToBB();
 	int Setup();
 	int LoadHeader(u32 Address);
-	int DrawRoom(wxMemoryDC* dst, wxMemoryDC* src);
+	int DrawRoom(wxMemoryDC* dst, wxMemoryDC* src, BG* bg,wxRasterOperationMode rop=wxCOPY);
 	int LoadMDB_StateSelect(u32 Address);
 	MDB_Header RoomHeader;
 	int LoadMDB_Roomstate(u32 Address, MDB_Roomstate* OutputMDB_Roomstate);
@@ -108,9 +109,10 @@ public:
 	tTSA TSA;
 	u32 Pnt2Off(u32 pointer);
 	int FindHeaders();
-
+	void GrabBG(vector<u8>* buffer);
 
 	//EXPORTING OCE
+	
 	int ExportTileset();
 	int ExportTileTable();
 	int MappingExists(unsigned short* tiles, vector<unsigned short*>*newMap);

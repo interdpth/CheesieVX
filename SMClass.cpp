@@ -173,7 +173,7 @@ int SMClass::GrabTileset(int GraphicsSet) {
 	}
 
 	SMDecomp(TableOff, &tsa2);
-
+	int tsacount = tsa1.size() / 8;
 	TSA.nTSA.resize(tsa1.size() + tsa2.size());
 	TSA.max = TSA.nTSA.size() / 8;
 	src = &tsa1[0];
@@ -300,19 +300,117 @@ int  SMClass::LoadMDB_StateSelect(u32 Address) {
 
 	return RoomStatePointers.size();
 }
-int SMClass::GrabRoom() {
 
+void SMClass::GrabBG(vector<u8>* buffer)
+{
+	unsigned long bgdata_pointer = RoomStates[iRoomState].Bgdata_p;
+	theBgs->bg2->layer = Layer::BG2;
+	if (RoomStates[iRoomState].Layer2_Scr & 0x0101) {
+		unsigned int LastROMPosition;
+		long size = 0;
+		std::vector<u8> cmpBuffer;
+		std::vector<u8> dcmpBuffer;
+		cmpBuffer.resize(0x10000);
+		dcmpBuffer.resize(0x10000);
+		unsigned char* src, dst;
+		unsigned char dataDump[512];
+		char debug[512];
+		FILE* fp = fopen(System.RomFilePath, "r+b");
+		if (fp) {
+			int offset = Pnt2Off(bgdata_pointer);
+			fseek(fp, offset, SEEK_SET);
+
+			vector<unsigned char> data;
+			unsigned char byteCode = fgetc(fp);
+			unsigned long curAddr;
+
+			unsigned short instruction;
+			fread(&instruction, 1, 2, fp);
+			unsigned long dataOffset = 0;
+			unsigned long dstOffset = 0;
+			unsigned short vramAddr = 0;
+			unsigned short size = 0;
+			unsigned short doorInfo = 0xBAAD;
+			u32 checker;
+			char bytes[3];
+
+			while (instruction != 0)
+			{
+				dataOffset = 0;
+				dstOffset = 0;
+				vramAddr = 0;
+				size = 0;
+				doorInfo = 0xBAAD;
+				switch (instruction)
+				{
+				case 0xe:
+					fread(&doorInfo, 2, 1, fp);
+				case 8:
+				case 2:
+					fread(bytes, 3, 1, fp);
+					fread(&vramAddr, 1, 2, fp);
+					fread(&size, 1, 2, fp);
+					curAddr = ftell(fp);
+
+					checker = (int)bytes[0] & 0xFF;
+					checker |= (int)(bytes[1] << 8 & 0x00FF00);
+					checker |= (int)(bytes[2] << 16 & 0xFF0000);
+					checker = Pnt2Off(checker);
+					sprintf(debug, "Would read bg data via instruction %x from %x to %x size %x", instruction, checker, vramAddr, size);
+					if (doorInfo != 0xBaad)
+					{
+						sprintf(debug, "%s source door %x", debug, doorInfo);
+					}
+					Logger::log->LogIt(Logger::DEBUG, debug);
+					break;
+				case 4:
+					fread(bytes, 3, 1, fp);
+					fread(&dstOffset, 1, 2, fp);
+					curAddr = ftell(fp);
+
+					checker = (int)bytes[0] & 0xFF;
+					checker |= (int)(bytes[1] << 8 & 0x00FF00);
+					checker |= (int)(bytes[2] << 16 & 0xFF0000);
+					checker = Pnt2Off(checker);
+					sprintf(debug, "Would read bg data via instruction %x from %x to %x", instruction, checker, dstOffset);
+					Logger::log->LogIt(Logger::DEBUG, debug);
+					break;
+					break;
+				default:
+					sprintf(debug, "Unsupported BG_DATA instruction %x", instruction);
+					Logger::log->LogIt(Logger::ERRORZ, debug);
+					break;
+				}
+
+				fread(&instruction, 1, 2, fp);
+			}
+			fclose(fp);
+		}
+	}
+	else
+	{
+		//Load bg from level data
+			
+		
+		int size = buffer->size();
+		int possibles = size / 3;
+		memcpy(&theBgs->bg2->blocks[0], &buffer->at(RoomHeader.Width * 16 * RoomHeader.Height * 16 * 3 + 2), RoomHeader.Width * 16 * RoomHeader.Height * 16 * 2 );
+
+	}
+}
+int SMClass::GrabRoom() {
+	theBgs = new Backgrounds(RoomHeader.Width * 16, RoomHeader.Height * 16);
 	vector<u8> buffer;
 	u32 size = SMDecomp(RoomStates[iRoomState].Roommap_p, &buffer);
 
 	Map.resize(size / 2);
 	memcpy(&Map[0], &buffer[0], size);
+	theBgs->bg1->layer = Layer::BG1;
+	theBgs->bg1->blocks.resize(RoomHeader.Width * 16 * RoomHeader.Height * 16);
 
-
+	memcpy(&theBgs->bg1->blocks.front(), &Map.front() + 1, RoomHeader.Width * 16 * RoomHeader.Height * 16 * 2);
+	GrabBG(&buffer);
 	return 0;
-
-
-
 }
 
 int SMClass::FindHeaders() {/*
@@ -355,7 +453,7 @@ int SMClass::LoadHeader(u32 Address) {
 
 
 
-int SMClass::DrawRoom(wxMemoryDC* dst, wxMemoryDC* src) {
+int SMClass::DrawRoom(wxMemoryDC* dst, wxMemoryDC* src, BG* bg, wxRasterOperationMode rop) {
 	int thisX = 0, thisY = 0, mX = 0, mY = 0;
 	u16 TILE = 0;
 	int curTile = 0;
@@ -370,7 +468,7 @@ int SMClass::DrawRoom(wxMemoryDC* dst, wxMemoryDC* src) {
 	int ThisX = 0;
 	RECT srcRect = { 0,0,0,0 };
 	RECT dstRect = { 0,0,0,0 };;
-	u16* TileBuf2D = &Map[1];
+	u16* TileBuf2D = &bg->blocks.front();
 	//imgMap.Create(Width*16, Height*16);
 
 	//Image* pic=&imgMap;
@@ -419,7 +517,7 @@ int SMClass::DrawRoom(wxMemoryDC* dst, wxMemoryDC* src) {
 
 
 
-			dst->StretchBlit(dstRect.left, dstRect.top, dstRect.right, dstRect.bottom, src, srcRect.left, srcRect.top, 16, 16);
+			dst->StretchBlit(dstRect.left, dstRect.top, dstRect.right, dstRect.bottom, src, srcRect.left, srcRect.top, 16, 16, rop);
 		}
 	}
 	//BlitToBB();
