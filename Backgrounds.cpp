@@ -26,7 +26,7 @@ Backgrounds::Backgrounds(int width, int height)
 
 	bg3 = NULL;// new BG(width, height);
 
-	clip = NULL; //new BG(width, height);
+	clip = new BG(width, height);
 }
 
 

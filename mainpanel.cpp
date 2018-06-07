@@ -21,7 +21,7 @@ MainPanel::MainPanel(wxWindow* parent)
 	int i;
 	
 
-	TheGame=new SMClass("C:\\Users\\Endeavor\\Downloads\\WWWWWSpace_Pirate_Samus_Revamp.smc");
+	TheGame=new SMClass("WWWWWSpace_Pirate_Samus_Revamp.smc");
 	wxBoxSizer* mainbox = new wxBoxSizer(wxHORIZONTAL);     // horizontal box (list on left, rest on right)
 	wxBoxSizer* rightbox = new wxBoxSizer(wxVERTICAL);      // vertical box on right (trainer on top, poke on bottom)
 	//clsMenu* themenu=new clsMenu(this);
@@ -62,7 +62,7 @@ MainPanel::MainPanel(wxWindow* parent)
 	
 	//mainbox->Add(new wxListBox(this,1));
 	AppPath=wxGetCwd();
-	int Address_Renamed = 0x7a37c;// 0x791F8;//0x7dd58;//0x79938;//;
+	int Address_Renamed = 0x7dd58;//0x791F8;//0x7a37c;// /0x79938;//;
 
 	TheGame = new SMClass("Super_Metroid_JU_.sfc");//"WWWWWSpace_Pirate_Samus_Revamp.smc");
 	TheGame->LoadHeader(Address_Renamed);

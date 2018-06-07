@@ -28,15 +28,8 @@ int SMClass::MageExport(int Area, int Room, bool IsMf)
 		newTileTableMappingIndexes[blockCounter] = newMapData.size() - 1;
 	}
 	QuantifyMapTiles(theBgs->bg1);
-
-	
-
-
 	QuantifyTable();
 	Remap(theBgs->bg1);
-	/*QuantifyTable();
-	Remap();*/
-
 	DeleteFileA("gbatroid.tiletable");
 	FILE* fp = fopen("gbatroid.tiletable", "w+b");
 	int len = gbaTroid.nTSA.size();

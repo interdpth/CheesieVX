@@ -112,6 +112,7 @@ void SMClass::Remap(BG* background)
 	unsigned short tsa[4];
 	int mappingId = 0;
 	//
+	bool isZM = true; 
 	for (int thisY = 0; thisY < Height; thisY++) {
 
 		for (int thisX = 0; thisX < (Width); thisX++) {// from here if something is enabled then draw it 
@@ -119,9 +120,29 @@ void SMClass::Remap(BG* background)
 			unsigned short		vflip = 1;
 			unsigned short		curTile = TileBuf2D[thisX + (thisY * Width)];
 			unsigned short		TILE = (curTile & 0xC00) | (curTile & 0x3ff);
-			unsigned short clipdata = curTile & 0x1000 >> 0xC;
+			unsigned short clipdata = (curTile & 0xF000) >> 0xC;
 
+			switch (clipdata)
+			{
+
+			case 0:
+			case 2:
+			case 4:
+			case 6:
+				clipdata = 0;
+				break;
+			case 9:
+				clipdata = 0x20;
+					break;
 			
+			default:
+				clipdata = 0x10;
+				break;
+			}
+			theBgs->clip->layer = Layer::Clip;
+			int sz = theBgs->clip->blocks.size();
+			theBgs->clip->blocks[thisX + (thisY * Width)] = clipdata;
+
 			int keyIndex = 0xBAAD;
 
 			if (curTile & 0xC00)

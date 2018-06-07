@@ -307,6 +307,7 @@ void SMClass::GrabBG(vector<u8>* buffer)
 	theBgs->bg2->layer = Layer::BG2;
 	if (RoomStates[iRoomState].Layer2_Scr & 0x0101) {
 		unsigned int LastROMPosition;
+		return;
 		long size = 0;
 		std::vector<u8> cmpBuffer;
 		std::vector<u8> dcmpBuffer;

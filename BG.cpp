@@ -23,6 +23,7 @@ void BG::Export(MemFile* theFile)
 		theFile->fputc(width);
 		theFile->fputc(height);
 		int compLen = RomClass::compress(compBuffer, (unsigned char*)&blocks.front(), (width * height) * 2);
+		
 		MemFile* thelayer = new MemFile (2 + (width * height) * 2);
 		thelayer->seek(0);
 
