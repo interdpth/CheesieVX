@@ -30,6 +30,7 @@ int SMClass::MageExport(int Area, int Room, bool IsMf)
 	QuantifyMapTiles(theBgs->bg1);
 	QuantifyTable();
 	Remap(theBgs->bg1);
+
 	DeleteFileA("gbatroid.tiletable");
 	FILE* fp = fopen("gbatroid.tiletable", "w+b");
 	int len = gbaTroid.nTSA.size();

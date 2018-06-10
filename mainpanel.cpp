@@ -62,7 +62,7 @@ MainPanel::MainPanel(wxWindow* parent)
 	
 	//mainbox->Add(new wxListBox(this,1));
 	AppPath=wxGetCwd();
-	int Address_Renamed = 0x7dd58;//0x791F8;//0x7a37c;// /0x79938;//;
+	int Address_Renamed =0x791F8;//0x7dd58;//0x7a37c;//0x79938;//  /;
 
 	TheGame = new SMClass("Super_Metroid_JU_.sfc");//"WWWWWSpace_Pirate_Samus_Revamp.smc");
 	TheGame->LoadHeader(Address_Renamed);

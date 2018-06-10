@@ -39,7 +39,7 @@ void SMClass::QuantifyMapTiles(BG* background)
 			unsigned short tmpMappings[4] = { 0 };
 			char flipType[32];
 			switch (flip) {
-			
+
 			case 0x4:
 				sprintf(flipType, "Horizontal");
 				for (int tileCounter = 0; tileCounter < 4; tileCounter++)
@@ -52,7 +52,7 @@ void SMClass::QuantifyMapTiles(BG* background)
 				tmpMappings[2] = tsa[tileCounter + 3];
 				tmpMappings[3] = tsa[tileCounter + 2];
 
-				
+
 				break;
 			case 0x8:
 				sprintf(flipType, "Vertical");
@@ -65,7 +65,7 @@ void SMClass::QuantifyMapTiles(BG* background)
 				tmpMappings[1] = tsa[tileCounter + 3];
 				tmpMappings[2] = tsa[tileCounter];
 				tmpMappings[3] = tsa[tileCounter + 1];
-				
+
 				break;
 			case 0xC:
 				sprintf(flipType, "Vertical and Horizontal");
@@ -77,7 +77,7 @@ void SMClass::QuantifyMapTiles(BG* background)
 				tmpMappings[1] = tsa[tileCounter + 2];
 				tmpMappings[2] = tsa[tileCounter + 1];
 				tmpMappings[3] = tsa[tileCounter];
-				
+
 				break;
 			}
 
@@ -96,7 +96,7 @@ void SMClass::QuantifyMapTiles(BG* background)
 			sprintf(debug, "Inserted %x new orientation %s mappingId %x", keyIndex, flipType, mappingId);
 			Logger::log->LogIt(Logger::DEBUG, debug);
 
-			flipMapping[(flip*0x100)|keyIndex] = mappingId;		
+			flipMapping[(flip * 0x100) | keyIndex] = mappingId;
 		}
 	}
 
@@ -112,7 +112,7 @@ void SMClass::Remap(BG* background)
 	unsigned short tsa[4];
 	int mappingId = 0;
 	//
-	bool isZM = true; 
+	bool isZM = true;
 	for (int thisY = 0; thisY < Height; thisY++) {
 
 		for (int thisX = 0; thisX < (Width); thisX++) {// from here if something is enabled then draw it 
@@ -133,8 +133,8 @@ void SMClass::Remap(BG* background)
 				break;
 			case 9:
 				clipdata = 0x20;
-					break;
-			
+				break;
+
 			default:
 				clipdata = 0x10;
 				break;
@@ -149,23 +149,22 @@ void SMClass::Remap(BG* background)
 			{
 				for (auto &i : flipMapping)
 				{
-					
 					if (i.first == TILE) {
 						TILE = i.second;
 						break; // to stop searching
 					}
 				}
 			}
-			
-				for (auto &i : newTileTableMappingIndexes)
-				{
-					if (i.first == TILE) {
-						keyIndex = i.second;
-						break; // to stop searching
-					}
+
+			for (auto &i : newTileTableMappingIndexes)
+			{
+				if (i.first == TILE) {
+					keyIndex = i.second;
+					break; // to stop searching
 				}
-			
-			
+			}
+
+
 
 			if (keyIndex == 0xBAAD)
 			{
@@ -173,13 +172,13 @@ void SMClass::Remap(BG* background)
 			}
 			if (TILE == 0xFF)
 			{
-				keyIndex = blockCount-1;
+				keyIndex = blockCount - 1;
 			}
-			background->blocks[thisX + (thisY * Width)] = keyIndex;	
-			
+			background->blocks[thisX + (thisY * Width)] = keyIndex;
+
 		}
 	}
-	
+
 
 }
 
