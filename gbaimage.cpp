@@ -75,7 +75,7 @@ void GBAImage::DrawTile(unsigned char* tile,int dstx,int dsty,int palette,int fl
 			x2 = (x ^ xorx) + y2;
 			if(!tile[x2] && !(flgs & NOTRANS))
 			continue;
-
+			
 			pImage[(dsty*nWd)+dstx] = pal | tile[x2];
 		}
 	}

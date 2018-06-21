@@ -54,7 +54,7 @@ protected:
 	wxButton*		btnSaveData;
 	PicWindow* TheMapWindow;
 	PicWindow* TheTileset;
-	
+	wxComboBox* offsetSelect;
 	
 	// Support functions for building the dialog
 	wxSizer*        BuildMap();
@@ -62,8 +62,8 @@ protected:
   void OnSize(wxSizeEvent& event);
 
 	void            OnChooseRom(wxCommandEvent& evt);
-	
-	
+	void comboTabAction(wxKeyEvent& event);
+	void RefreshRoom();
 	// declare an event table so events get tied to those functions
 	//   see also BEGIN_EVENT_TABLE in mainpanel.cpp
 	//Editing Options prototypes and stuff

@@ -230,32 +230,31 @@ int SMClass::SNES2GBA(u8* pnt) {
 
 
 
-
 int ValidType(int type) {
-	if (type == 0xE5EB ||
-		type == 0xE5FF ||
-		type == 0xE612 ||
-		type == 0xE629 ||
+	if (type == 0xE5FF ||
 		type == 0xE640 ||
 		type == 0xE652 ||
 		type == 0xE669 ||
-		type == 0xE678)
-	{
-		return 1;
-	}
-	else if (type == 0xE5E6) {
+		type == 0xE678) {
 		return 2;
 	}
-	else {
-		return 0;
-
+	else if (type == 0xE612 ||
+		type == 0xE629) {
+		return 3;
 	}
-
+	else if (type == 0xE5EB) {
+		return 4;
+	}
+	else if (type == 0xE5E6) {
+		return 0;
+	}
+	else {
+		return -1;
+	}
 }
 int  SMClass::LoadMDB_StateSelect(u32 Address) {
 
 	// max 10 roomstates / 52 bytes
-
 
 	long pointer = 0;
 	u8 Destination[52];
@@ -265,42 +264,56 @@ int  SMClass::LoadMDB_StateSelect(u32 Address) {
 	int TempBytes[3];
 	u32 Pointer = 0;
 	u16 type;
+	u16 typepointer;
 	long Offset = Address;
-
+	char buffer[512] = { 0 };
 	if (System.ROM) {
-		fseek(System.ROM, Offset, SEEK_SET);
 		while (RoomStatePointers.size() != 10) {
+			sprintf(buffer, "Seeking %x", Offset);
+			Logger::log->LogIt(Logger::DEBUG, buffer);
+			fseek(System.ROM, Offset, SEEK_SET);
+			Offset = ftell(System.ROM);
 			fread(&type, 1, 2, System.ROM);
-			if (ValidType(type) == 1) {
-				if (type == 0xE612 || type == 0xE629) fgetc(System.ROM);//Deal with this later
-				fread(&type, 1, 2, System.ROM);
-				Pointer = type + 0x8F0000;
+			sprintf(buffer, "Type is %x", type);
+			Logger::log->LogIt(Logger::DEBUG, buffer);
+			if (ValidType(type) == 0) {     // Standard state
+				Pointer = Offset + 0x880002;    // Add 880002 to get SNES pointer (07XXXX + 880002 = 8FXXXX + 2)
+
+				sprintf(buffer, "Raw Pointer is %x", Pointer);
+
+
+				Logger::log->LogIt(Logger::DEBUG, buffer);
+
+				sprintf(buffer, "Converted is %x", Pnt2Off(Pointer));
+
+				Logger::log->LogIt(Logger::DEBUG, buffer);
 				RoomStatePointers.push_back(Pnt2Off(Pointer));
-
-
 			}
-			if (ValidType(type) == 2) {
-				Pointer = ftell(System.ROM);
-				RoomStatePointers.push_back(Pointer);
-				break;
+			else if (ValidType(type) == -1) {
+				////Invalid room state. Do something here?
+				//Offset--;
 			}
+			else {
+				Offset = Offset + ValidType(type) + 2;      // If not a standard state
+				fseek(System.ROM, Offset - 2, SEEK_SET);      // Set offset to next state header - 2 (location of the state pointer)
+				fread(&typepointer, 1, 2, System.ROM);      // Get state pointer
+				Pointer = typepointer + 0x8F0000;       // Add 8F0000 to get SNES pointer
+				sprintf(buffer, "Raw Pointer is %x", Pointer);
 
-			fseek(System.ROM, ftell(System.ROM) - 1, SEEK_SET);//Go back one
 
+				Logger::log->LogIt(Logger::DEBUG, buffer);
 
+				sprintf(buffer, "Converted is %x", Pnt2Off(Pointer));
 
+				Logger::log->LogIt(Logger::DEBUG, buffer);
+				RoomStatePointers.push_back(Pnt2Off(Pointer));
+				break;  // I dont know what this does?
+			}
 		}
-
-
-
 		//fclose(System.ROM);
-
-
 	}
-
 	return RoomStatePointers.size();
 }
-
 void SMClass::GrabBG(vector<u8>* buffer)
 {
 	unsigned long bgdata_pointer = RoomStates[iRoomState].Bgdata_p;
@@ -391,11 +404,11 @@ void SMClass::GrabBG(vector<u8>* buffer)
 	else
 	{
 		//Load bg from level data
-			
-		
+
+
 		int size = buffer->size();
 		int possibles = size / 3;
-		memcpy(&theBgs->bg2->blocks[0], &buffer->at(RoomHeader.Width * 16 * RoomHeader.Height * 16 * 3 + 2), RoomHeader.Width * 16 * RoomHeader.Height * 16 * 2 );
+		memcpy(&theBgs->bg2->blocks[0], &buffer->at(RoomHeader.Width * 16 * RoomHeader.Height * 16 * 3 + 2), RoomHeader.Width * 16 * RoomHeader.Height * 16 * 2);
 
 	}
 }
@@ -474,7 +487,7 @@ int SMClass::DrawRoom(wxMemoryDC* dst, wxMemoryDC* src, BG* bg, wxRasterOperatio
 
 	//Image* pic=&imgMap;
 
-	//pic->SetPalette(&Pal[0]);
+	//bg->SetPalette(&Pal[0]);
 	for (thisY = 0; thisY < Height; thisY++) {
 
 		for (thisX = 0; thisX < (Width); thisX++) {// from here if something is enabled then draw it 
@@ -524,22 +537,14 @@ int SMClass::DrawRoom(wxMemoryDC* dst, wxMemoryDC* src, BG* bg, wxRasterOperatio
 	//BlitToBB();
 	return 0;
 }
-int SMClass::LoadMDB_Roomstate(u32 Address, MDB_Roomstate* OutputMDB_Roomstate) {
-
-
-
+int SMClass::LoadMDB_Roomstate(u32 Address, MDB_Roomstate* OutputMDB_Roomstate) 
+{
 	FILE* fp = fopen(System.RomFilePath, "r+b");
 	if (fp) {
-		fseek(fp, Address, SEEK_SET);
-
-
-		//OutputMDB_Roomstate->Roommap_p=SNES.r//ReadPointer(Address);
+		fseek(fp, Address, SEEK_SET);	
 		u32 checker;
 		char bytes[3];
-
 		fread(bytes, 3, 1, fp);
-
-
 		checker = (int)bytes[0] & 0xFF;
 		checker |= (int)(bytes[1] << 8 & 0x00FF00);
 		checker |= (int)(bytes[2] << 16 & 0xFF0000);
@@ -548,7 +553,7 @@ int SMClass::LoadMDB_Roomstate(u32 Address, MDB_Roomstate* OutputMDB_Roomstate) 
 		fread(&OutputMDB_Roomstate->MusicTrack, 1, 1, fp);
 		fread(&OutputMDB_Roomstate->MusicControl, 1, 1, fp);
 		fread(&OutputMDB_Roomstate->Fx1_p, 2, 1, fp);
-		fread(&OutputMDB_Roomstate->Roompop_p, 1, 1, fp);
+		fread(&OutputMDB_Roomstate->Roompop_p, 2, 1, fp);
 		fread(&OutputMDB_Roomstate->Enemyset_p, 2, 1, fp);
 		fread(&OutputMDB_Roomstate->Layer2_Scr, 2, 1, fp);
 		fread(&OutputMDB_Roomstate->Mdb_Scroll_p, 2, 1, fp);
@@ -557,7 +562,6 @@ int SMClass::LoadMDB_Roomstate(u32 Address, MDB_Roomstate* OutputMDB_Roomstate) 
 		fread(&OutputMDB_Roomstate->Plm_p, 2, 1, fp);
 		fread(&OutputMDB_Roomstate->Bgdata_p, 2, 1, fp);
 		fread(&OutputMDB_Roomstate->LayersHandling, 2, 1, fp);
-
 		fclose(fp);
 	}
 	return OutputMDB_Roomstate->GraphicsSet;

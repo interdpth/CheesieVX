@@ -56,7 +56,7 @@ Logger::~Logger()
 Logger* Logger::log;
 void Logger::LogIt(LOGTYPE t, char* msg)
 {
-	char buffer[100] = { 0 };
+	/*char buffer[100] = { 0 };
 	struct tm* tm_info;
 	time_t timer;
 	time(&timer);
@@ -75,5 +75,5 @@ void Logger::LogIt(LOGTYPE t, char* msg)
 		fseek(logFile, 0, SEEK_END);
 		fputs(debugMessage, logFile);
 	}
-	delete[] debugMessage;
+	delete[] debugMessage;*/
 }

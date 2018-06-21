@@ -46,7 +46,7 @@ struct MDB_Roomstate{
 	u8 MusicTrack;
 	u8 MusicControl;
 	u16 Fx1_p;
-	u8 Roompop_p; //Room population
+	u16 Roompop_p; //Room population
 	u16 Enemyset_p;
 	u16 Layer2_Scr;
 	u16 Mdb_Scroll_p;
@@ -115,6 +115,7 @@ public:
 	
 	int ExportTileset();
 	int ExportTileTable();
+	int ReduceToVisibleTiles();
 	int MappingExists(unsigned short* tiles, vector<unsigned short*>*newMap);
 	bool CompareTileTables(unsigned short* tiles, unsigned short* tiles2);
 	map<int, int> newTileTableMappingIndexes;

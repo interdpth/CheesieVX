@@ -14,6 +14,7 @@ public:
 	//wxBitmap bmpTrainer;
 	wxScrollBar* HSB;
 	wxScrollBar* VSB;
+
 	wxMemoryDC dcPic;
 	gameImages*  gI;
 	wxRect* recSel;

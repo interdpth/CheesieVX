@@ -1,5 +1,8 @@
 #include "SMClass.h"
-
+int SMClass::ReduceToVisibleTiles()
+{
+	return 0;
+}
 int SMClass::MageExport(int Area, int Room, bool IsMf)
 {
 	

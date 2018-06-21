@@ -8,7 +8,38 @@ BEGIN_EVENT_TABLE(MainPanel,wxPanel)
 	//EVT_MENU(idOpen,MainPanel::HandleMenu)
 END_EVENT_TABLE()
 
+void MainPanel::RefreshRoom()
+{
 
+	char buffer[512];
+	wxString b = offsetSelect->GetStringSelection();
+
+	
+	sprintf(buffer, "0x%s",b.mb_str().data());
+	unsigned long addr = 0;
+	sscanf(buffer, "%x", &addr);
+	int Address_Renamed = addr;//0x7Da60;//0x791f8;// 0x7dd58;//0x79938;//0x7a37c;//  /;
+
+	TheGame = new SMClass("Super_Metroid_JU_.sfc");//"WWWWWSpace_Pirate_Samus_Revamp.smc");
+	TheGame->LoadHeader(Address_Renamed);
+
+	TheGame->RoomStates.resize(TheGame->LoadMDB_StateSelect(Address_Renamed + 11));
+	TheGame->iRoomState = 0;
+	TheGame->LoadMDB_Roomstate(TheGame->RoomStatePointers[TheGame->iRoomState], &TheGame->RoomStates[TheGame->iRoomState]);
+	TheGame->GrabRoom();
+
+	TheGame->GrabTileset(TheGame->RoomStates[TheGame->iRoomState].GraphicsSet);
+	TheTileset->gI->Set(&TheGame->Tiles);
+	TheTileset->gI->Set(&TheGame->Pal);
+	TheTileset->gI->Set(&TheGame->TSA.nTSA);
+	TheTileset->gI->MakeImage(NULL, NULL, 0, 0, 32, 32);
+	TheTileset->Refresh();
+
+	//TheGame->DrawRoom(&TheMapWindow->dcPic,&TheTileset->dcPic, TheGame->theBgs->bg2);
+	TheGame->DrawRoom(&TheMapWindow->dcPic, &TheTileset->dcPic, TheGame->theBgs->bg1);
+	TheGame->MageExport(0, 0, false);
+	TheMapWindow->Refresh();
+}
 ///////////////////////////////////////////////////////
 //  the constructor -- called when the window is created (with 'new')
 //    you must call the base class's (in this case, wxPanel) construtor to tell
@@ -33,6 +64,7 @@ MainPanel::MainPanel(wxWindow* parent)
 	{   // left column
 		// wxBoxSizer* col = new wxBoxSizer(wxHORIZONTAL);
 		//col->AddStretchSpacer();
+
 		row ->Add(BuildMap());
 
 		
@@ -62,27 +94,7 @@ MainPanel::MainPanel(wxWindow* parent)
 	
 	//mainbox->Add(new wxListBox(this,1));
 	AppPath=wxGetCwd();
-	int Address_Renamed =0x791F8;//0x7dd58;//0x7a37c;//0x79938;//  /;
-
-	TheGame = new SMClass("Super_Metroid_JU_.sfc");//"WWWWWSpace_Pirate_Samus_Revamp.smc");
-	TheGame->LoadHeader(Address_Renamed);
-	
-	TheGame->RoomStates.resize(TheGame->LoadMDB_StateSelect(Address_Renamed + 11));
-	TheGame->iRoomState = 0;
-	TheGame->LoadMDB_Roomstate(TheGame->RoomStatePointers[TheGame->iRoomState], &TheGame->RoomStates[TheGame->iRoomState]);
-	TheGame->GrabRoom();
-	
-	TheGame->GrabTileset(TheGame->RoomStates[TheGame->iRoomState].GraphicsSet);
-	TheTileset->gI->Set(&TheGame->Tiles);
-	TheTileset->gI->Set(&TheGame->Pal);
-	TheTileset->gI->Set(&TheGame->TSA.nTSA);
-	TheTileset->gI->MakeImage(NULL,NULL,0,0,32,32);
-	TheTileset->Refresh();
-	
-	TheGame->DrawRoom(&TheMapWindow->dcPic,&TheTileset->dcPic, TheGame->theBgs->bg2);
-	TheGame->DrawRoom(&TheMapWindow->dcPic, &TheTileset->dcPic, TheGame->theBgs->bg1);
-	TheGame->MageExport(0, 0, false);
-	TheMapWindow->Refresh();
+	RefreshRoom();
 }
 
 // more building (box building -- wee)

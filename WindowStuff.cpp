@@ -1,11 +1,41 @@
 #include "main.h"
 using namespace std;
 
+
+
+void MainPanel::comboTabAction(wxKeyEvent& event)
+{
+	if (event.GetKeyCode() == WXK_DOWN)
+		RefreshRoom();
+	else
+		event.Skip();
+}
 wxSizer* MainPanel::BuildEditingOptions(){
 	wxStaticBoxSizer* mainsiz = new wxStaticBoxSizer(wxHORIZONTAL,this,wxT("Editing Options"));
 	chkTileEdit=new wxCheckBox(this, CHKTILEEDIT, wxT("Edit Tiles"));
 	chkPropEdit=new wxCheckBox(this, CHKPROPEDIT,wxT("Edit Properties"));
+	this->offsetSelect = new wxComboBox(this, wxID_ANY, _T(""), wxDefaultPosition, wxDefaultSize,
+		0, NULL, wxTE_PROCESS_ENTER | wxTE_PROCESS_TAB| wxCB_DROPDOWN);
+	this->offsetSelect->GetEventHandler()->Connect(wxEVT_KEY_DOWN, wxKeyEventHandler(MainPanel::comboTabAction));
+	vector<wxString>  b;
+	FILE* fp = fopen("mdb.txt", "r");
 
+
+	if (fp)
+	{
+		char blah[16];
+		while (fgets(blah, 16, fp) != NULL)
+		{
+			b.push_back(blah);
+		}
+		
+		fclose(fp);
+	}
+
+	
+	offsetSelect->Insert(b,0);
+	offsetSelect->Select(0);
+	mainsiz->Add(offsetSelect);
 	mainsiz->Add(chkTileEdit);
 	mainsiz->Add(chkPropEdit);
 	return mainsiz;
