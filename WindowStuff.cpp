@@ -1,22 +1,27 @@
 #include "main.h"
 using namespace std;
-
-
-
-void MainPanel::comboTabAction(wxKeyEvent& event)
+wxComboBox* hey;
+MainPanel* MainPanel::myPanel;
+void MainPanel::comboTabAction(wxCommandEvent& event)
 {
-	if (event.GetKeyCode() == WXK_DOWN)
+	int testOffset = -1;
+	wxEventType ay = event.GetEventType();
+	
+		
 		RefreshRoom();
-	else
-		event.Skip();
+		
+		// TODO: Send event as well
+	    
+	
+	
 }
 wxSizer* MainPanel::BuildEditingOptions(){
 	wxStaticBoxSizer* mainsiz = new wxStaticBoxSizer(wxHORIZONTAL,this,wxT("Editing Options"));
 	chkTileEdit=new wxCheckBox(this, CHKTILEEDIT, wxT("Edit Tiles"));
 	chkPropEdit=new wxCheckBox(this, CHKPROPEDIT,wxT("Edit Properties"));
-	this->offsetSelect = new wxComboBox(this, wxID_ANY, _T(""), wxDefaultPosition, wxDefaultSize,
+	offsetSelect = new wxComboBox(this, COMBOOFFSET, _T(""), wxDefaultPosition, wxDefaultSize,
 		0, NULL, wxTE_PROCESS_ENTER | wxTE_PROCESS_TAB| wxCB_DROPDOWN);
-	this->offsetSelect->GetEventHandler()->Connect(wxEVT_KEY_DOWN, wxKeyEventHandler(MainPanel::comboTabAction));
+	//offsetSelect->GetEventHandler()->Connect( wxEVT_COMBOBOX,(wxObjectEventFunction)&MainPanel::comboTabAction,this);
 	vector<wxString>  b;
 	FILE* fp = fopen("mdb.txt", "r");
 

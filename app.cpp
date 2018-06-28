@@ -31,7 +31,7 @@ bool App::OnInit()
 
 	wxBoxSizer* siz = new wxBoxSizer(wxHORIZONTAL);
 	clsMenu* ourmenu = new clsMenu(frame);
-	MainPanel* panel = new MainPanel( frame );
+	panel = new MainPanel( frame );
 	siz->Add(panel);
 	frame->SetSizerAndFit(siz);
 

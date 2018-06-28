@@ -1,7 +1,7 @@
 
 #ifndef __APP_H__       // include protection -- prevents the same file
 #define __APP_H__       //    from being included multiple times
-
+#include "mainpanel.h"
 /*
 *	The class which represents your application instance
 */
@@ -13,7 +13,7 @@ public:
 	// need to have this OnInit() function.  This is like the WinMain except
 	//  for wx
 	bool        OnInit();
-	
+	MainPanel* panel;
 };
 
 // putting DECLARE_APP here allows use of the wxGetApp() function which allows

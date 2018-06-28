@@ -6,6 +6,7 @@ using namespace std;
 BEGIN_EVENT_TABLE(MainPanel,wxPanel)
     EVT_SIZE(          MainPanel::OnSize)
 	//EVT_MENU(idOpen,MainPanel::HandleMenu)
+	EVT_COMBOBOX(COMBOOFFSET, MainPanel::comboTabAction)
 END_EVENT_TABLE()
 
 void MainPanel::RefreshRoom()

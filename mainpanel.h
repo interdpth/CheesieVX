@@ -12,7 +12,7 @@
 class MainPanel : public wxPanel
 {
 public:
-	
+	static MainPanel* myPanel;
 	MainPanel(wxWindow* parent);
 	SMClass* TheGame;
 	void HandleMenu(wxCommandEvent& event);
@@ -36,7 +36,8 @@ protected:
 	{
 		
 		CHKTILEEDIT,
-		CHKPROPEDIT
+		CHKPROPEDIT,
+		COMBOOFFSET
 
 		
 	};
@@ -62,7 +63,7 @@ protected:
   void OnSize(wxSizeEvent& event);
 
 	void            OnChooseRom(wxCommandEvent& evt);
-	void comboTabAction(wxKeyEvent& event);
+	void comboTabAction(wxCommandEvent& event);
 	void RefreshRoom();
 	// declare an event table so events get tied to those functions
 	//   see also BEGIN_EVENT_TABLE in mainpanel.cpp
