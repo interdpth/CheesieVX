@@ -72,13 +72,17 @@ void PicWindow::ScrollStuff(wxScrollEvent& event){
 	event.Skip();
 	this->Refresh();
 }
-//	void PicWindow::LeftClick(wxMouseEvent &event){
 
-//}
 void PicWindow::onLeftDown(wxMouseEvent &event){
-	int X=event.GetX()/16;
-	int Y=event.GetY()/16;
-	X=X;
+	curX=event.GetX()/16;
+	curY =event.GetY()/16;
+
+	if (myid == IMAGEID::MAP)
+	{
+
+	}
+
+
 }
 void PicWindow::onMove(wxMouseEvent &event){
 //Modify rect

@@ -30,16 +30,16 @@ void MainPanel::RefreshRoom()
 	TheGame->GrabRoom();
 
 	TheGame->GrabTileset(TheGame->RoomStates[TheGame->iRoomState].GraphicsSet);
-	TheTileset->gI->Set(&TheGame->Tiles);
-	TheTileset->gI->Set(&TheGame->Pal);
-	TheTileset->gI->Set(&TheGame->TSA.nTSA);
-	TheTileset->gI->MakeImage(NULL, NULL, 0, 0, 32, 32);
-	TheTileset->Refresh();
+	TheTileset->pic->gI->Set(&TheGame->Tiles);
+	TheTileset->pic->gI->Set(&TheGame->Pal);
+	TheTileset->pic->gI->Set(&TheGame->TSA.nTSA);
+	TheTileset->pic->gI->MakeImage(NULL, NULL, 0, 0, 32, 32);
+	TheTileset->pic->Refresh();
 
-	//TheGame->DrawRoom(&TheMapWindow->dcPic,&TheTileset->dcPic, TheGame->theBgs->bg2);
-	TheGame->DrawRoom(&TheMapWindow->dcPic, &TheTileset->dcPic, TheGame->theBgs->bg1);
+	//TheGame->DrawRoom(&TheMapWindow->pic->dcPic,&TheTileset->pic->dcPic, TheGame->theBgs->bg2);
+	TheGame->DrawRoom(&TheMapWindow->pic->dcPic, &TheTileset->pic->dcPic, TheGame->theBgs->bg1);
 	TheGame->MageExport(0, 0, false);
-	TheMapWindow->Refresh();
+	TheMapWindow->pic->Refresh();
 }
 ///////////////////////////////////////////////////////
 //  the constructor -- called when the window is created (with 'new')

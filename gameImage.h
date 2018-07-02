@@ -4,11 +4,16 @@
 #include <wx/dcmemory.h>
 #include <vector>
 using namespace std;
+#ifndef game_imgage_h
+#define game_imgage_h
+
 #define u8 unsigned char
 #define u16 unsigned short
 #define u32 unsigned long
-#ifndef game_imgage_h
-#define game_imgage_h
+enum IMAGEID {
+	MAP,
+	TILESET
+};
 class gameImages{//Store buffers and shit in here. 
 public:
 	GBAImage img;

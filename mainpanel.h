@@ -1,5 +1,7 @@
 #include "picWindow.h"
 #include "SMClass.h"
+#include "Mapclass.h"
+#include "Tilesetclass.h"
 #include "gameImage.h"
 #ifndef __MAINPANEL_H__       // include protection -- prevents the same file
 #define __MAINPANEL_H__       //    from being included multiple times
@@ -53,8 +55,8 @@ protected:
 
 	wxButton*		btnOpenRom;
 	wxButton*		btnSaveData;
-	PicWindow* TheMapWindow;
-	PicWindow* TheTileset;
+	Mapclass* TheMapWindow;
+	Tilesetclass* TheTileset;
 	wxComboBox* offsetSelect;
 	
 	// Support functions for building the dialog

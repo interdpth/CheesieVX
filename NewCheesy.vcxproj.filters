@@ -112,6 +112,11 @@
     </ClCompile>
     <ClCompile Include="Exporting.cpp" />
     <ClCompile Include="Logger.cpp" />
+    <ClCompile Include="ExportingTileset.cpp" />
+    <ClCompile Include="ExportingTileTable.cpp" />
+    <ClCompile Include="Remap.cpp" />
+    <ClCompile Include="Mapclass.cpp" />
+    <ClCompile Include="Tilesetclass.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="app.h">
@@ -292,6 +297,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Logger.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Mapclass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Tilesetclass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
