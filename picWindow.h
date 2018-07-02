@@ -14,7 +14,7 @@ public:
 	//wxBitmap bmpTrainer;
 	wxScrollBar* HSB;
 	wxScrollBar* VSB;
-
+	IMAGEID myid;
 	wxMemoryDC dcPic;
 	gameImages*  gI;
 	wxRect* recSel;
@@ -23,10 +23,14 @@ public:
 	int Width;
 	int rButton;
 	int lButton;
+	int curX;
+	int curY;
+	int index;
 	wxScrolledWindow *sw;
-	PicWindow(wxWindow* parent, int iWidth, int iHeight)   // just have it call the wxWindow ctor
+	PicWindow(wxWindow* parent, IMAGEID id, int iWidth, int iHeight)   // just have it call the wxWindow ctor
 	: wxWindow(parent,wxID_ANY,wxDefaultPosition,wxSize(iWidth,iHeight ))
 	{
+		myid = id;
 		recSel=new wxRect(0,0,16,16);
 
 		gI=new gameImages(&dcPic);

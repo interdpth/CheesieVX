@@ -60,19 +60,19 @@ wxSizer* MainPanel::BuildMap()
 	wxBoxSizer* col;
 	//  top row:  name
 	
-	TheMapWindow= new PicWindow(this,512+20,256+20);
+	TheMapWindow->pic= new PicWindow(this,IMAGEID::MAP,512+20,256+20);
 	row = new wxBoxSizer(wxHORIZONTAL);
 
-	TheMapWindow->MakeVSB();
+	TheMapWindow->pic->MakeVSB();
 	
-	TheMapWindow->VSB->SetScrollbar(0,5,16,4);
+	TheMapWindow->pic->VSB->SetScrollbar(0,5,16,4);
   
-	TheMapWindow->MakeHSB();
-	TheMapWindow->HSB->SetScrollbar(0,5,16,4);
+	TheMapWindow->pic->MakeHSB();
+	TheMapWindow->pic->HSB->SetScrollbar(0,5,16,4);
 
 	row = new wxBoxSizer(wxHORIZONTAL);
-	TheMapWindow->gI=new gameImages(&TheMapWindow->dcPic);
-	row->Add(TheMapWindow);
+	TheMapWindow->pic->gI=new gameImages(&TheMapWindow->pic->dcPic);
+	row->Add(TheMapWindow->pic);
 	
 	mainsiz->Add(row);
 	mainsiz->AddSpacer(4);
@@ -113,14 +113,14 @@ wxSizer* MainPanel::BuildTileset()
 	wxBoxSizer* col;
 	//  top row:  name
 	
-	TheTileset= new PicWindow(this,528,128);
-	TheTileset->MakeVSB();
-	TheTileset->VSB->SetScrollbar(0,5,16,4);
+	TheTileset->pic= new PicWindow(this,IMAGEID::TILESET,528,128);
+	TheTileset->pic->MakeVSB();
+	TheTileset->pic->VSB->SetScrollbar(0,5,16,4);
 
 	row = new wxBoxSizer(wxHORIZONTAL);
-	TheTileset->gI=new gameImages(&TheTileset->dcPic);
+	TheTileset->pic->gI=new gameImages(&TheTileset->pic->dcPic);
 
-	row->Add(TheTileset);
+	row->Add(TheTileset->pic);
 	
 	mainsiz->Add(row);
 	mainsiz->AddSpacer(4);
