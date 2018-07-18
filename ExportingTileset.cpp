@@ -129,9 +129,9 @@ int SMClass::ExportTileset()
 			Tiles.push_back(newTiles.at(i)[y]);
 		}
 	}
-
-
-	FILE*	fp2 = fopen("tmpgfx.gfx", "wb");
+	char path[1024];
+	sprintf(path, "%s\\tilegfx.gfx", exporthPath);
+	FILE*	fp2 = fopen(path, "wb");
 	if (fp2)
 	{
 		fwrite(&Tiles[0], 1, Tiles.size(), fp2);

@@ -70,8 +70,9 @@ class SMClass{
 public:
 	int ExportTilemap();
 	std::vector<u16> Map; 
-
+	char exporthPath[1024];
 	int GrabRoom();
+	unsigned long _currentAddress;
 	//Vars
 	int MageExport(int Area, int Room, bool IsMf);
 	int iRoomState; //Current room state

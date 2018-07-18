@@ -1,4 +1,5 @@
 #include "SMClass.h"
+#include <stdio.h>
 int SMClass::ReduceToVisibleTiles()
 {
 	return 0;
@@ -6,6 +7,8 @@ int SMClass::ReduceToVisibleTiles()
 int SMClass::MageExport(int Area, int Room, bool IsMf)
 {
 	
+
+
 	newTileTableMappingIndexes.clear();
 	newMapData.clear();
 
@@ -33,9 +36,11 @@ int SMClass::MageExport(int Area, int Room, bool IsMf)
 	QuantifyMapTiles(theBgs->bg1);
 	QuantifyTable();
 	Remap(theBgs->bg1);
+	char path[1024];
+	sprintf(path, "%s\\gbatroid.tiletable", exporthPath);
 
-	DeleteFileA("gbatroid.tiletable");
-	FILE* fp = fopen("gbatroid.tiletable", "w+b");
+	DeleteFileA(path);
+	FILE* fp = fopen(path, "w+b");
 	int len = gbaTroid.nTSA.size();
 	if (fp)
 	{

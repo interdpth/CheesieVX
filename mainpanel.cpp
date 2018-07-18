@@ -20,12 +20,14 @@ void MainPanel::RefreshRoom()
 	unsigned long addr = 0;
 	sscanf(buffer, "%x", &addr);
 	int Address_Renamed = addr;//0x7Da60;//0x791f8;// 0x7dd58;//0x79938;//0x7a37c;//  /;
-
+	
 	TheGame = new SMClass("Super_Metroid_JU_.sfc");//"WWWWWSpace_Pirate_Samus_Revamp.smc");
 	TheGame->LoadHeader(Address_Renamed);
 
 	TheGame->RoomStates.resize(TheGame->LoadMDB_StateSelect(Address_Renamed + 11));
 	TheGame->iRoomState = 0;
+	sprintf(TheGame->exporthPath, "%x", Address_Renamed);
+	mkdir(TheGame->exporthPath);
 	TheGame->LoadMDB_Roomstate(TheGame->RoomStatePointers[TheGame->iRoomState], &TheGame->RoomStates[TheGame->iRoomState]);
 	TheGame->GrabRoom();
 

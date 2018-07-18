@@ -59,7 +59,7 @@ wxSizer* MainPanel::BuildMap()
 	wxBoxSizer* row;
 	wxBoxSizer* col;
 	//  top row:  name
-	
+	TheMapWindow = new Mapclass();
 	TheMapWindow->pic= new PicWindow(this,IMAGEID::MAP,512+20,256+20);
 	row = new wxBoxSizer(wxHORIZONTAL);
 
@@ -112,7 +112,7 @@ wxSizer* MainPanel::BuildTileset()
 	wxBoxSizer* row;
 	wxBoxSizer* col;
 	//  top row:  name
-	
+	TheTileset = new Tilesetclass();
 	TheTileset->pic= new PicWindow(this,IMAGEID::TILESET,528,128);
 	TheTileset->pic->MakeVSB();
 	TheTileset->pic->VSB->SetScrollbar(0,5,16,4);

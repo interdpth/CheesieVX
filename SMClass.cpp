@@ -149,11 +149,14 @@ int SMClass::GrabTileset(int GraphicsSet) {
 
 	Pal.resize(buffer.size());
 	System.DecodeSNESPal(PalOff, &Pal[0], 8, 0, size, &buffer);
-	FILE* fp2 = fopen("tmppal", "wb");
+	char path[1024];
+	sprintf(path, "%s\\roompal", exporthPath);
+
+	FILE* fp2 = fopen(path, "wb");
 	if (fp2)
 	{
-		fseek(fp2, 0x10 * 2, SEEK_SET);
-		fwrite(&buffer.front(), 1, 16 * 2 * 8, fp2);
+		fseek(fp2, 0x10*2, SEEK_SET);
+		fwrite(&buffer.front(), 1, size, fp2);
 		fclose(fp2);
 	}
 
@@ -443,7 +446,7 @@ int SMClass::FindHeaders() {/*
 }
 int SMClass::LoadHeader(u32 Address) {
 	iRoomState = 0;
-
+	_currentAddress = Address;
 	FILE* fp = fopen(System.RomFilePath, "r+b");
 	if (fp) {
 		fseek(fp, Address, SEEK_SET);
