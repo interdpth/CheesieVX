@@ -24,6 +24,8 @@ void SMClass::QuantifyMapTiles(BG* background)
 			unsigned short		flip = (curTile & 0xC00) >> 8;
 			unsigned short clipdata = curTile & 0x1000 >> 0xC;
 
+			unsigned short BGTest = curTile & ~0x3FF & ~(0xC00) & ~0xf000;
+
 			if (flip == 0)
 			{
 				continue;
