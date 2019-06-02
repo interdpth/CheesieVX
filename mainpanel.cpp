@@ -38,8 +38,13 @@ void MainPanel::RefreshRoom()
 	TheTileset->pic->gI->MakeImage(NULL, NULL, 0, 0, 32, 32);
 	TheTileset->pic->Refresh();
 
+	TheMapWindow->pic->gI->Set(&TheGame->Tiles);
+	TheMapWindow->pic->gI->Set(&TheGame->Pal);
+	TheMapWindow->pic->gI->Set(&TheGame->theBgs->bg2->blocks);
+	TheMapWindow->pic->gI->MakeImage(NULL, NULL, 0, 0, 16, 16);
+	TheMapWindow->pic->Refresh();
 	//TheGame->DrawRoom(&TheMapWindow->pic->dcPic,&TheTileset->pic->dcPic, TheGame->theBgs->bg2);
-	TheGame->DrawRoom(&TheMapWindow->pic->dcPic, &TheTileset->pic->dcPic, TheGame->theBgs->bg1);
+	//TheGame->DrawRoom(&TheMapWindow->pic->dcPic, &TheTileset->pic->dcPic, TheGame->theBgs->bg1);
 	TheGame->MageExport(0, 0, false);
 	TheMapWindow->pic->Refresh();
 }
@@ -72,23 +77,13 @@ MainPanel::MainPanel(wxWindow* parent)
 
 		
 	}
-	// {   // right column
-	//wxBoxSizer* col = new wxBoxSizer(wxHORIZONTAL);
-	///    
-	//     row ->Add(BuildTileset());
-
-	//row->Add(col,1,wxEXPAND | wxALIGN_CENTER_VERTICAL);
-	//  }
+	
 	rightbox->Add(row);
 	rightbox->Add(BuildTileset());
 
 	
 
 	mainbox->Add(rightbox);
-	
-	//mainbox->Add(BuildTileset());
-	//rightbox->AddSpacer(8);             // put 8 pixels of padding between trainer/poke boxes
-
 	wxBoxSizer* finalbox = new wxBoxSizer(wxHORIZONTAL);
 	finalbox->Add(mainbox,1,wxEXPAND | wxALL,8);
 

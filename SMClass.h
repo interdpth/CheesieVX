@@ -86,6 +86,7 @@ public:
 	bool CompareTiles(unsigned char* srcTile, unsigned char* chkTile);
 	unsigned short TileExists(unsigned char* srcTile, vector<unsigned char*>*theTiles);
 	void UpdateTileTable(unsigned short oldMapping, unsigned short newMapping);
+	u32 BytesToOff(char* bytes);
 	//Functions
 	int QuantifyTable();
 	int RemapRoomtiles();

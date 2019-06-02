@@ -55,6 +55,14 @@ int __stdcall LunarPCtoSNES(int RomPointer) {
 	return (RomPointer);
 }
 
+u32 SMClass::BytesToOff(char* bytes)
+{
+	u32 dataPointer = (int)bytes[0] & 0xFF;
+	dataPointer |= (int)(bytes[1] << 8 & 0x00FF00);
+	dataPointer |= (int)(bytes[2] << 16 & 0xFF0000);
+	return dataPointer;
+}
+
 u32 SMClass::Pnt2Off(unsigned long pointer) {
 	// pointer &= 0x7FFFFF;
 
@@ -137,7 +145,7 @@ int SMClass::GrabTileset(int GraphicsSet) {
 	tiledst = 20480;
 	size = SMDecomp(0x1C8000, &buffer2);
 	Tiles.resize(tiledst + size);
-	memcpy(&Tiles[0], &buffer[0], tiledst);
+	memcpy(&Tiles[0], &buffer[0], buffer.size());
 	memcpy(&Tiles[tiledst], &buffer2[0], size);
 	SNES2GBA();
 
@@ -182,7 +190,7 @@ int SMClass::GrabTileset(int GraphicsSet) {
 	src = &tsa1[0];
 	dst = (unsigned char*)&TSA.nTSA[0];
 	memcpy(dst, src, 0x800);
-	//TSA.max=0x200+tsa2.size()/2;
+
 	src = &tsa2[0];
 	dst = (unsigned char*)&TSA.nTSA[0];//0x800*2?
 	memcpy(&dst[0x800], src, tsa2.size());
@@ -323,7 +331,8 @@ void SMClass::GrabBG(vector<u8>* buffer)
 	theBgs->bg2->layer = Layer::BG2;
 	if (RoomStates[iRoomState].Layer2_Scr & 0x0101) {
 		unsigned int LastROMPosition;
-		return;
+		int startBG = 0x10000;
+		int copySize = 0;
 		long size = 0;
 		std::vector<u8> cmpBuffer;
 		std::vector<u8> dcmpBuffer;
@@ -331,14 +340,15 @@ void SMClass::GrabBG(vector<u8>* buffer)
 		dcmpBuffer.resize(0x10000);
 		unsigned char* src, dst;
 		unsigned char dataDump[512];
+		unsigned char vram[0x10000] = { 0 };
 		char debug[512];
 		FILE* fp = fopen(System.RomFilePath, "r+b");
 		if (fp) {
-			int offset = Pnt2Off(bgdata_pointer);
+			int offset = Pnt2Off(bgdata_pointer+0x8f0000);
 			fseek(fp, offset, SEEK_SET);
-
+			
 			vector<unsigned char> data;
-			unsigned char byteCode = fgetc(fp);
+			//unsigned char byteCode = fgetc(fp);
 			unsigned long curAddr;
 
 			unsigned short instruction;
@@ -348,7 +358,7 @@ void SMClass::GrabBG(vector<u8>* buffer)
 			unsigned short vramAddr = 0;
 			unsigned short size = 0;
 			unsigned short doorInfo = 0xBAAD;
-			u32 checker;
+			u32 dataPointer;
 			char bytes[3];
 
 			while (instruction != 0)
@@ -369,11 +379,18 @@ void SMClass::GrabBG(vector<u8>* buffer)
 					fread(&size, 1, 2, fp);
 					curAddr = ftell(fp);
 
-					checker = (int)bytes[0] & 0xFF;
-					checker |= (int)(bytes[1] << 8 & 0x00FF00);
-					checker |= (int)(bytes[2] << 16 & 0xFF0000);
-					checker = Pnt2Off(checker);
-					sprintf(debug, "Would read bg data via instruction %x from %x to %x size %x", instruction, checker, vramAddr, size);
+					dataPointer = BytesToOff(&bytes[0]) & 0xFFFF;
+
+					if (dataPointer < startBG)
+					{
+						startBG = dstOffset;
+					}
+					copySize += size;
+
+					sprintf(debug, "Would read bg data via instruction %x from %x to %x size %x", instruction, dataPointer, vramAddr, size);
+
+					memcpy(&vram[vramAddr], &vram[dataPointer], size);
+
 					if (doorInfo != 0xBaad)
 					{
 						sprintf(debug, "%s source door %x", debug, doorInfo);
@@ -381,17 +398,21 @@ void SMClass::GrabBG(vector<u8>* buffer)
 					Logger::log->LogIt(Logger::DEBUG, debug);
 					break;
 				case 4:
-					fread(bytes, 3, 1, fp);
+					fread(bytes, 3, 1, fp);  
 					fread(&dstOffset, 1, 2, fp);
 					curAddr = ftell(fp);
-
-					checker = (int)bytes[0] & 0xFF;
-					checker |= (int)(bytes[1] << 8 & 0x00FF00);
-					checker |= (int)(bytes[2] << 16 & 0xFF0000);
-					checker = Pnt2Off(checker);
-					sprintf(debug, "Would read bg data via instruction %x from %x to %x", instruction, checker, dstOffset);
+				
+					
+					sprintf(debug, "Would read bg data via instruction %x from %x to %x", instruction, dataPointer, dstOffset);
+					SMDecomp(Pnt2Off(BytesToOff(&bytes[0])), &dcmpBuffer);
+					if (dstOffset < startBG)
+					{
+						startBG = dstOffset;
+				    }
+					copySize += dcmpBuffer.size();
+					memcpy(&vram[dstOffset], &dcmpBuffer[0], dcmpBuffer.size());
+					fseek(fp, curAddr, SEEK_SET);
 					Logger::log->LogIt(Logger::DEBUG, debug);
-					break;
 					break;
 				default:
 					sprintf(debug, "Unsupported BG_DATA instruction %x", instruction);
@@ -403,6 +424,14 @@ void SMClass::GrabBG(vector<u8>* buffer)
 			}
 			fclose(fp);
 		}
+		fp = fopen("C:\\dhtest\\cheesybg.raw", "w+b");
+		fwrite(&vram[startBG], 1, copySize, fp);
+		fclose(fp);
+		theBgs->bg2->blocks.resize(copySize / 2);
+	
+
+		memcpy(&theBgs->bg2->blocks[0], &vram[startBG], copySize);
+
 	}
 	else
 	{
