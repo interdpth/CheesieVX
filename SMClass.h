@@ -114,7 +114,8 @@ public:
 	void GrabBG(vector<u8>* buffer);
 
 	//EXPORTING OCE
-	
+	bool hasBackground = false;
+	bool BGISBG3 = false;
 	int ExportTileset();
 	int ExportTileTable();
 	int ReduceToVisibleTiles();

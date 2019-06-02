@@ -43,8 +43,10 @@ void MainPanel::RefreshRoom()
 	TheMapWindow->pic->gI->Set(&TheGame->theBgs->bg2->blocks);
 	TheMapWindow->pic->gI->MakeImage(NULL, NULL, 0, 0, 16, 16);
 	TheMapWindow->pic->Refresh();
-	//TheGame->DrawRoom(&TheMapWindow->pic->dcPic,&TheTileset->pic->dcPic, TheGame->theBgs->bg2);
-	//TheGame->DrawRoom(&TheMapWindow->pic->dcPic, &TheTileset->pic->dcPic, TheGame->theBgs->bg1);
+	
+	
+	TheGame->DrawRoom(&TheMapWindow->pic->dcPic,&TheTileset->pic->dcPic, TheGame->theBgs->bg2);
+	TheGame->DrawRoom(&TheMapWindow->pic->dcPic, &TheTileset->pic->dcPic, TheGame->theBgs->bg1);
 	TheGame->MageExport(0, 0, false);
 	TheMapWindow->pic->Refresh();
 }

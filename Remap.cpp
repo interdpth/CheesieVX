@@ -4,10 +4,37 @@
 using namespace std;
 map<int, int> flipMapping;
 
+
+void AddGBAPadding(int width, int height, vector<unsigned short>* buff)
+{
+	//make new buffer 
+	vector<unsigned short> newBuffer;
+	
+	int newWidth = width + 4;//left and right padding
+	int newHeight = height + 4;//top and bottom padding
+	newBuffer.resize(newWidth * newHeight);
+
+	//for (int x = 0; x < width; x++)
+	//{
+		for (int y = 0; y < height; y++)
+		{
+		//	int newBufX = x + 2;
+			int newBufY = y + 2;
+			 //= buff->at(x + y*width);
+			memcpy(&newBuffer[newBufY*(width) + 2 ], &buff->at(y*width), 2 * (width) - 4);
+		}
+	//}
+
+	*buff = newBuffer;
+
+
+}
+
 void SMClass::QuantifyMapTiles(BG* background)
 {
 	int  Width = RoomHeader.Width * 16;
 	int Height = RoomHeader.Height * 16;
+	AddGBAPadding(Width,Height, &background->blocks);
 	u16* TileBuf2D = &background->blocks.front();
 	int totalCount = gbaTroid.nTSA.size();
 	int blockCount = totalCount / 4;
@@ -23,8 +50,6 @@ void SMClass::QuantifyMapTiles(BG* background)
 			unsigned short		keyIndex = (curTile & 0x3ff);
 			unsigned short		flip = (curTile & 0xC00) >> 8;
 			unsigned short clipdata = curTile & 0x1000 >> 0xC;
-
-			unsigned short BGTest = curTile & ~0x3FF & ~(0xC00) & ~0xf000;
 
 			if (flip == 0)
 			{

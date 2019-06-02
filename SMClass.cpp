@@ -424,14 +424,10 @@ void SMClass::GrabBG(vector<u8>* buffer)
 			}
 			fclose(fp);
 		}
-		fp = fopen("C:\\dhtest\\cheesybg.raw", "w+b");
-		fwrite(&vram[startBG], 1, copySize, fp);
-		fclose(fp);
-		theBgs->bg2->blocks.resize(copySize / 2);
 	
-
+		theBgs->bg2->blocks.resize(copySize / 2);
 		memcpy(&theBgs->bg2->blocks[0], &vram[startBG], copySize);
-
+		BGISBG3 = true;
 	}
 	else
 	{
