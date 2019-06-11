@@ -73,8 +73,10 @@ public:
 	char exporthPath[1024];
 	int GrabRoom();
 	unsigned long _currentAddress;
+	vector<unsigned char> specialbggfx;
 	//Vars
 	int MageExport(int Area, int Room, bool IsMf);
+	void SMBG2GBATroid(vector<u16>* buffer);
 	int iRoomState; //Current room state
 	std::vector<MDB_Roomstate> RoomStates;
 	std::vector<u32> RoomStatePointers;
@@ -106,8 +108,6 @@ public:
 	std::vector<u8> Tiles;
 	std::vector<COLOR> Pal;
 	int SNES2GBA(u8* pnt);
-	int DrawBlock(short Map16n , int destX , int destY);
-	void DrawTileset();
 	tTSA TSA;
 	u32 Pnt2Off(u32 pointer);
 	int FindHeaders();
@@ -116,6 +116,7 @@ public:
 	//EXPORTING OCE
 	bool hasBackground = false;
 	bool BGISBG3 = false;
+	void AddGBAPadding(unsigned char* width, unsigned char* height, vector<unsigned short>* buff);
 	int ExportTileset();
 	int ExportTileTable();
 	int ReduceToVisibleTiles();

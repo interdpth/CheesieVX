@@ -156,14 +156,14 @@ int SMClass::GrabTileset(int GraphicsSet) {
 
 
 	Pal.resize(buffer.size());
-	System.DecodeSNESPal(PalOff, &Pal[0], 8, 0, size, &buffer);
+	System.DecodeSNESPal(PalOff, &Pal[0], buffer.size()/16, 0, size, &buffer);
 	char path[1024];
 	sprintf(path, "%s\\roompal", exporthPath);
 
 	FILE* fp2 = fopen(path, "wb");
 	if (fp2)
 	{
-		fseek(fp2, 0x10*2, SEEK_SET);
+		fseek(fp2, 0x10 * 2, SEEK_SET);
 		fwrite(&buffer.front(), 1, size, fp2);
 		fclose(fp2);
 	}
@@ -325,10 +325,93 @@ int  SMClass::LoadMDB_StateSelect(u32 Address) {
 	}
 	return RoomStatePointers.size();
 }
+
+
+void ReplaceTile(vector<unsigned short>* buffer, int oldTIle, int newTile)
+{
+	for (int val = 0; val < buffer->size(); val++)
+	{
+		int val2 = buffer->at(val);
+		if ((val2 & 0x3FF) == oldTIle)
+		{
+			buffer->at(val) = (0xFC00 & val2) | newTile;
+		}
+	}
+}
+
+//buffer = tilemap buffer
+void SMClass::SMBG2GBATroid(vector<unsigned short>* buffer)
+{
+	unsigned char* gfxbuf = new unsigned char[256 * 256 * 32];
+
+	unsigned char* dstp = gfxbuf;
+	specialbggfx.resize(256 * 256 * 32);
+	vector<u16> newTilemap;
+	newTilemap.resize(buffer->size());
+	std::map<int, int> indexes;
+	//We need to gather the gfx 
+	int maxID = 0;
+	memset(gfxbuf, 0, 256 * 256 * 32);
+	for (int tilemap = 0; tilemap < buffer->size(); tilemap++)
+	{
+
+		//Get current nonmapped tile
+		unsigned short curtile = (*buffer)[tilemap] & 0x3FF;
+
+		//Get the tilemap info we're keeping
+		unsigned short extraData = (*buffer)[tilemap] & 0xFC00;
+
+		//Does curtile eixst in map? 
+		if (indexes.count(curtile) == 0)
+		{
+
+			//if current tile is not in map, add it to the graphics buffer
+			memcpy(dstp, &Tiles.at(curtile * 32), 32);
+
+			//Calculate id from current address of dst minus original then divide by 32 for tile
+			int id = (dstp - gfxbuf) / 32;
+
+			//add to mapping
+			indexes[curtile] = id;
+
+			//"Increase tile buffer id"
+			dstp += 32;
+			maxID++;
+		}
+
+		int mapping = indexes[curtile];
+		buffer->at(tilemap) = extraData | mapping;
+	}
+
+	int startTile = ((0xFDe0-0x8000) / 32) - maxID;
+	specialbggfx.resize(maxID * 32);
+	for (int tilemap = 0; tilemap < buffer->size(); tilemap++)
+	{
+
+		//Get current nonmapped tile
+		unsigned short curtile = (*buffer)[tilemap] & 0x3FF;
+
+		//Get the tilemap info we're keeping
+		unsigned short extraData = (*buffer)[tilemap] & 0xFC00;
+
+		unsigned short t = (*buffer)[tilemap];
+		
+		buffer->at(tilemap) = ((t+startTile) & 0x3FF | ((t & 0xC000) >> 4) | (((t & 0x1C00) >> 10) + 2) * 0x1000+0x1000) & 0xFFFF; ;
+	}
+
+
+
+	
+	memcpy(&specialbggfx.front(), gfxbuf, specialbggfx.size());
+
+
+	delete gfxbuf;
+
+}
 void SMClass::GrabBG(vector<u8>* buffer)
 {
 	unsigned long bgdata_pointer = RoomStates[iRoomState].Bgdata_p;
-	theBgs->bg2->layer = Layer::BG2;
+
 	if (RoomStates[iRoomState].Layer2_Scr & 0x0101) {
 		unsigned int LastROMPosition;
 		int startBG = 0x10000;
@@ -341,12 +424,15 @@ void SMClass::GrabBG(vector<u8>* buffer)
 		unsigned char* src, dst;
 		unsigned char dataDump[512];
 		unsigned char vram[0x10000] = { 0 };
+		//Load bg from level data
+		theBgs->bg3->layer = Layer::BG3;
+		theBgs->bg2->blocks.resize(1);
 		char debug[512];
 		FILE* fp = fopen(System.RomFilePath, "r+b");
 		if (fp) {
-			int offset = Pnt2Off(bgdata_pointer+0x8f0000);
+			int offset = Pnt2Off(bgdata_pointer + 0x8f0000);
 			fseek(fp, offset, SEEK_SET);
-			
+
 			vector<unsigned char> data;
 			//unsigned char byteCode = fgetc(fp);
 			unsigned long curAddr;
@@ -398,17 +484,17 @@ void SMClass::GrabBG(vector<u8>* buffer)
 					Logger::log->LogIt(Logger::DEBUG, debug);
 					break;
 				case 4:
-					fread(bytes, 3, 1, fp);  
+					fread(bytes, 3, 1, fp);
 					fread(&dstOffset, 1, 2, fp);
 					curAddr = ftell(fp);
-				
-					
+
+
 					sprintf(debug, "Would read bg data via instruction %x from %x to %x", instruction, dataPointer, dstOffset);
 					SMDecomp(Pnt2Off(BytesToOff(&bytes[0])), &dcmpBuffer);
 					if (dstOffset < startBG)
 					{
 						startBG = dstOffset;
-				    }
+					}
 					copySize += dcmpBuffer.size();
 					memcpy(&vram[dstOffset], &dcmpBuffer[0], dcmpBuffer.size());
 					fseek(fp, curAddr, SEEK_SET);
@@ -424,16 +510,18 @@ void SMClass::GrabBG(vector<u8>* buffer)
 			}
 			fclose(fp);
 		}
-	
-		theBgs->bg2->blocks.resize(copySize / 2);
-		memcpy(&theBgs->bg2->blocks[0], &vram[startBG], copySize);
+
+		theBgs->bg3->blocks.resize(copySize / 2);
+		theBgs->bg3->prop = 0x40;
+		memcpy(&theBgs->bg3->blocks[0], &vram[startBG], copySize);
+		SMBG2GBATroid(&theBgs->bg3->blocks);
 		BGISBG3 = true;
 	}
 	else
 	{
 		//Load bg from level data
-
-
+		theBgs->bg2->layer = Layer::BG2;
+		BGISBG3 = false;
 		int size = buffer->size();
 		int possibles = size / 3;
 		memcpy(&theBgs->bg2->blocks[0], &buffer->at(RoomHeader.Width * 16 * RoomHeader.Height * 16 * 3 + 2), RoomHeader.Width * 16 * RoomHeader.Height * 16 * 2);
@@ -565,11 +653,11 @@ int SMClass::DrawRoom(wxMemoryDC* dst, wxMemoryDC* src, BG* bg, wxRasterOperatio
 	//BlitToBB();
 	return 0;
 }
-int SMClass::LoadMDB_Roomstate(u32 Address, MDB_Roomstate* OutputMDB_Roomstate) 
+int SMClass::LoadMDB_Roomstate(u32 Address, MDB_Roomstate* OutputMDB_Roomstate)
 {
 	FILE* fp = fopen(System.RomFilePath, "r+b");
 	if (fp) {
-		fseek(fp, Address, SEEK_SET);	
+		fseek(fp, Address, SEEK_SET);
 		u32 checker;
 		char bytes[3];
 		fread(bytes, 3, 1, fp);
