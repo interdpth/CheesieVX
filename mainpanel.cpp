@@ -29,9 +29,10 @@ void MainPanel::RefreshRoom()
 	sprintf(TheGame->exporthPath, "%x", Address_Renamed);
 	mkdir(TheGame->exporthPath);
 	TheGame->LoadMDB_Roomstate(TheGame->RoomStatePointers[TheGame->iRoomState], &TheGame->RoomStates[TheGame->iRoomState]);
+	
+	TheGame->GrabTileset(TheGame->RoomStates[TheGame->iRoomState].GraphicsSet);
 	TheGame->GrabRoom();
 
-	TheGame->GrabTileset(TheGame->RoomStates[TheGame->iRoomState].GraphicsSet);
 	TheTileset->pic->gI->Set(&TheGame->Tiles);
 	TheTileset->pic->gI->Set(&TheGame->Pal);
 	TheTileset->pic->gI->Set(&TheGame->TSA.nTSA);
