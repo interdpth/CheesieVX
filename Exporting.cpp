@@ -60,7 +60,7 @@ int SMClass::MageExport(int Area, int Room, bool IsMf)
 	
 	thisFile->seek(100);
 	int bgPointers[5] = { 0 };
-	theBgs->Export(thisFile, bgPointers);
+	theBgs->Export(thisFile, bgPointers,exporthPath);
 
 
 

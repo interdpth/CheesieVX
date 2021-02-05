@@ -444,7 +444,7 @@ void SMClass::GrabBG(vector<u8>* buffer)
 			unsigned short vramAddr = 0;
 			unsigned short size = 0;
 			unsigned short doorInfo = 0xBAAD;
-			u32 dataPointer;
+			u32 dataPointer=0;
 			char bytes[3];
 
 			while (instruction != 0)
