@@ -116,7 +116,7 @@ public:
 	//EXPORTING OCE
 	bool hasBackground = false;
 	bool BGISBG3 = false;
-	void AddGBAPadding(unsigned char width, unsigned char height, vector<unsigned short>* buff);
+	void AddGBAPadding(BG* background);
 	int ExportTileset();
 	int ExportTileTable();
 	int ReduceToVisibleTiles();

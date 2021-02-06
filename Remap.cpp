@@ -5,10 +5,22 @@ using namespace std;
 map<int, int> flipMapping;
 
 
-void  SMClass::AddGBAPadding(unsigned char width, unsigned char height, vector<unsigned short>* buff)
+void  SMClass::AddGBAPadding(BG* background)
 {
 	//make new buffer 
 	vector<unsigned short> newBuffer;
+	int oldWidth = background->width;
+	int oldHeight = background->height;
+
+
+	int newWidth = oldWidth + (4*16);//left and right padding
+	int newHeight = oldHeight + (4*16);//top and bottom padding
+	newBuffer.resize(newWidth * newHeight);
+	if (newBuffer.size()==0)
+	{
+		printf("fuck");
+	}
+	/*RESEARCH
 	
 	int newWidth = width + 4;//left and right padding
 	int newHeight = height + 4;//top and bottom padding
@@ -26,14 +38,41 @@ void  SMClass::AddGBAPadding(unsigned char width, unsigned char height, vector<u
 	//}
 
 	*buff = newBuffer;
+	
+	
+	*/
 
+	//for (int x = 0; x < width; x++)
+	//{
+		//for (int x = 0; x < width; x++)
+	//{
+		for (int y = 0; y < oldHeight; y++)
+		{
+		//	int newBufX = x + 2;
+			int newBufY = y + 2;
+			 //= buff->at(x + y*width);
+			//memcpy(&newBuffer[newBufY*(oldWidth) + 2 ], (const void*)(background->blocks[y* oldWidth]), 2 * (oldWidth) - 4);
+			for (int i = 0; i < oldWidth;i++)
+			{
+				newBuffer[y * newWidth + i + 2] = background->blocks[y * oldWidth + i];
+			}
+		}
+	//}
+		
+		background->blocks.clear();
+		background->blocks.resize(newWidth * newHeight);
 
+		memcpy(&background->blocks.front() , &newBuffer.front(), newWidth * newHeight * 2);
+		background->width = newWidth;
+		background->height = newHeight;
 }
 void SMClass::QuantifyMapTiles(BG* background)
 {
-	int  Width = RoomHeader.Width * 16;
-	int Height = RoomHeader.Height * 16;
-	AddGBAPadding(Width, Height, &background->blocks);
+	AddGBAPadding(background);
+	AddGBAPadding(theBgs->clip);
+	int  Width = background->width;
+	int Height = background->height;
+
 	u16* TileBuf2D = &background->blocks.front();
 	int totalCount = gbaTroid.nTSA.size();
 	int blockCount = totalCount / 4;
@@ -130,8 +169,8 @@ void SMClass::QuantifyMapTiles(BG* background)
 
 void SMClass::Remap(BG* background)
 {
-	int  Width = RoomHeader.Width * 16;
-	int Height = RoomHeader.Height * 16;
+	int  Width = background->width;
+	int Height = background->height;
 	u16* TileBuf2D = &background->blocks.front();
 	int totalCount = gbaTroid.nTSA.size();
 	int blockCount = totalCount / 4;
